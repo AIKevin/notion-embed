@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appartement 3 pièces Paris 11 - Visite 3D | ImmoScan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #000;
+            color: var(--gray-800);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-preview {
+            width: 300px;
+            height: 200px;
+            background: linear-gradient(45deg, var(--gray-200) 25%, var(--gray-300) 25%, var(--gray-300) 50%, var(--gray-200) 50%, var(--gray-200) 75%, var(--gray-300) 75%, var(--gray-300));
+            background-size: 20px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-preview::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            to { left: 100%; }
+        }
+
+        .loading-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 2px;
+            margin: 0 auto 8px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 2px;
+            animation: loading 2s ease-out;
+        }
+
+        @keyframes loading {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        /* 3D Viewer Container */
+        .viewer-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: #1a1a1a;
+        }
+
+        .viewer-3d {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #2a2a2a 0%, #1a1a1a 100%);
+            cursor: grab;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .viewer-3d:active {
+            cursor: grabbing;
+        }
+
+        /* Simulated 3D Room */
+        .room-simulation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) perspective(1000px) rotateX(10deg) rotateY(0deg);
+            width: 600px;
+            height: 400px;
+            transform-style: preserve-3d;
+            animation: room-rotate 30s linear infinite;
+        }
+
+        @keyframes room-rotate {
+            from { transform: translate(-50%, -50%) perspective(1000px) rotateX(10deg) rotateY(0deg); }
+            to { transform: translate(-50%, -50%) perspective(1000px) rotateX(10deg) rotateY(360deg); }
+        }
+
+        .room-floor {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                #3a3a3a,
+                #3a3a3a 50px,
+                #2a2a2a 50px,
+                #2a2a2a 100px
+            );
+            transform: rotateX(90deg) translateZ(-200px);
+            opacity: 0.8;
+        }
+
+        .room-wall {
+            position: absolute;
+            background: linear-gradient(to bottom, #4a4a4a, #3a3a3a);
+            opacity: 0.9;
+        }
+
+        .wall-back {
+            width: 100%;
+            height: 400px;
+            transform: translateZ(-300px);
+        }
+
+        .wall-left {
+            width: 600px;
+            height: 400px;
+            transform: rotateY(90deg) translateZ(-300px);
+            left: -300px;
+        }
+
+        .wall-right {
+            width: 600px;
+            height: 400px;
+            transform: rotateY(-90deg) translateZ(-300px);
+            right: -300px;
+        }
+
+        /* Navigation Controls */
+        .nav-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .nav-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn:active {
+            transform: translateY(0);
+        }
+
+        .nav-home {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Mini Map */
+        .mini-map {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 180px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: var(--shadow-xl);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mini-map:hover {
+            transform: scale(1.05);
+        }
+
+        .map-container {
+            width: 100%;
+            height: 100%;
+            background: var(--gray-100);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-floor {
+            position: absolute;
+            background: var(--gray-300);
+            opacity: 0.8;
+        }
+
+        .room-1 { top: 10px; left: 10px; width: 60px; height: 40px; }
+        .room-2 { top: 10px; left: 80px; width: 40px; height: 40px; }
+        .room-3 { top: 60px; left: 10px; width: 40px; height: 35px; }
+        .room-4 { top: 60px; left: 60px; width: 60px; height: 35px; }
+
+        .map-pointer {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border: 2px solid white;
+            border-radius: 50%;
+            top: 30px;
+            left: 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .map-label {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            color: var(--gray-600);
+        }
+
+        /* Property Info Panel */
+        .info-panel {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .info-panel.collapsed {
+            width: 60px;
+            height: 60px;
+        }
+
+        .info-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            background: var(--gray-100);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .info-toggle:hover {
+            background: var(--gray-200);
+        }
+
+        .info-content {
+            padding: 24px;
+            transition: opacity 0.3s;
+        }
+
+        .info-panel.collapsed .info-content {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .property-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .property-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--gray-900);
+        }
+
+        .property-address {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--gray-600);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .property-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--gray-700);
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .photo-thumb {
+            aspect-ratio: 1;
+            background: var(--gray-200);
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .photo-thumb:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .contact-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .contact-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-md);
+        }
+
+        .action-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Help Overlay */
+        .help-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+        }
+
+        .help-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .help-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .help-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .help-item {
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .help-icon {
+            font-size: 24px;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .help-close {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* Fullscreen Mode */
+        .viewer-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .viewer-container.fullscreen .info-panel {
+            top: 20px;
+            left: 20px;
+        }
+
+        .viewer-container.fullscreen .action-buttons {
+            top: 20px;
+            right: 20px;
+        }
+
+        .viewer-container.fullscreen .nav-controls {
+            bottom: 20px;
+        }
+
+        .viewer-container.fullscreen .mini-map {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        /* Share Modal */
+        .share-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            display: none;
+        }
+
+        .share-modal.show {
+            display: flex;
+        }
+
+        .share-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .share-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .share-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .share-btn {
+            padding: 12px;
+            border: 1px solid var(--gray-200);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .share-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        .share-link {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .share-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .copy-btn {
+            padding: 10px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .info-panel {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-width: none;
+                border-radius: 24px 24px 0 0;
+                transform: translateY(calc(100% - 120px));
+                transition: transform 0.3s;
+            }
+
+            .info-panel.expanded {
+                transform: translateY(0);
+            }
+
+            .info-toggle {
+                top: 12px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 48px;
+                height: 4px;
+                border-radius: 2px;
+            }
+
+            .mini-map {
+                width: 120px;
+                height: 80px;
+                bottom: 140px;
+                right: 20px;
+            }
+
+            .nav-controls {
+                bottom: 20px;
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .action-buttons {
+                top: 20px;
+                right: 20px;
+                gap: 8px;
+            }
+
+            .action-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .property-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Touch Instructions */
+        .touch-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            pointer-events: none;
+            animation: fadeInOut 3s ease-out;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            20%, 80% { opacity: 1; }
+        }
+
+        /* Loading States */
+        .skeleton {
+            background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-300) 50%, var(--gray-200) 75%);
+            background-size: 200% 100%;
+            animation: skeleton 1.5s linear infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes skeleton {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Performance Mode Toggle */
+        .quality-toggle {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--gray-600);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quality-toggle:hover {
+            background: white;
+            color: var(--gray-800);
+        }
+
+        .quality-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .quality-toggle.low .quality-dot {
+            background: var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-preview"></div>
+            <h2 class="loading-title">Chargement de la visite 3D</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p style="color: var(--gray-600); font-size: 14px;">Appartement 3 pièces - Paris 11</p>
+        </div>
+    </div>
+
+    <!-- 3D Viewer -->
+    <div class="viewer-container">
+        <div class="viewer-3d" id="viewer3d">
+            <!-- Simulated 3D Room -->
+            <div class="room-simulation" id="roomSimulation">
+                <div class="room-floor"></div>
+                <div class="room-wall wall-back"></div>
+                <div class="room-wall wall-left"></div>
+                <div class="room-wall wall-right"></div>
+            </div>
+
+            <!-- Touch Hint -->
+            <div class="touch-hint">↔️ Glissez pour naviguer</div>
+        </div>
+
+        <!-- Property Info Panel -->
+        <div class="info-panel" id="infoPanel">
+            <button class="info-toggle" onclick="toggleInfo()">
+                <span id="toggleIcon">➖</span>
+            </button>
+            <div class="info-content">
+                <div class="property-price">450 000 €</div>
+                <h1 class="property-title">Appartement 3 pièces lumineux</h1>
+                <div class="property-address">
+                    <span>📍</span>
+                    <span>15 rue Voltaire, Paris 11ème</span>
+                </div>
+                
+                <div class="property-features">
+                    <div class="feature-item">
+                        <span>🏠</span>
+                        <span>75 m²</span>
+                    </div>
+                    <div class="feature-item">
+                        <span>🛏️</span>
+                        <span>2 chambres</span>
+                    </div>
+                    <div class="feature-item">
+                        <span>🚿</span>
+                        <span>1 salle de bain</span>
+                    </div>
+                    <div class="feature-item">
+                        <span>🏛️</span>
+                        <span>3ème étage</span>
+                    </div>
+                </div>
+
+                <div class="photos-grid">
+                    <div class="photo-thumb skeleton"></div>
+                    <div class="photo-thumb skeleton"></div>
+                    <div class="photo-thumb skeleton"></div>
+                    <div class="photo-thumb">
+                        <div style="width: 100%; height: 100%; background: var(--gray-300); display: flex; align-items: center; justify-content: center; color: var(--gray-500); font-size: 12px;">+8</div>
+                    </div>
+                </div>
+
+                <button class="contact-btn" onclick="showContactForm()">
+                    Contacter l'agent
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn" onclick="toggleFullscreen()" title="Plein écran">
+                <span id="fullscreenIcon">⛶</span>
+            </button>
+            <button class="action-btn" onclick="showShare()" title="Partager">
+                <span>🔗</span>
+            </button>
+            <button class="action-btn" onclick="showHelp()" title="Aide">
+                <span>❓</span>
+            </button>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="navigateRoom('left')" title="Pièce précédente">
+                <span>⬅️</span>
+            </button>
+            <button class="nav-btn nav-home" onclick="goToHome()" title="Retour entrée">
+                <span>🏠</span>
+            </button>
+            <button class="nav-btn" onclick="navigateRoom('right')" title="Pièce suivante">
+                <span>➡️</span>
+            </button>
+        </div>
+
+        <!-- Mini Map -->
+        <div class="mini-map" onclick="toggleMapSize()">
+            <div class="map-container">
+                <div class="map-floor room-1"></div>
+                <div class="map-floor room-2"></div>
+                <div class="map-floor room-3"></div>
+                <div class="map-floor room-4"></div>
+                <div class="map-pointer" id="mapPointer"></div>
+            </div>
+            <div class="map-label">Plan 2D</div>
+        </div>
+
+        <!-- Quality Toggle -->
+        <div class="quality-toggle" onclick="toggleQuality()">
+            <span class="quality-dot"></span>
+            <span id="qualityText">Qualité HD</span>
+        </div>
+
+        <!-- Help Overlay -->
+        <div class="help-overlay" id="helpOverlay">
+            <h2 class="help-title">Navigation dans la visite 3D</h2>
+            <div class="help-grid">
+                <div class="help-item">
+                    <span class="help-icon">🖱️</span>
+                    <div>
+                        <div style="font-weight: 600;">Clic gauche</div>
+                        <div class="help-text">Se déplacer vers un point</div>
+                    </div>
+                </div>
+                <div class="help-item">
+                    <span class="help-icon">👆</span>
+                    <div>
+                        <div style="font-weight: 600;">Glisser</div>
+                        <div class="help-text">Regarder autour de vous</div>
+                    </div>
+                </div>
+                <div class="help-item">
+                    <span class="help-icon">🔍</span>
+                    <div>
+                        <div style="font-weight: 600;">Molette / Pincer</div>
+                        <div class="help-text">Zoomer / Dézoomer</div>
+                    </div>
+                </div>
+                <div class="help-item">
+                    <span class="help-icon">⌨️</span>
+                    <div>
+                        <div style="font-weight: 600;">Flèches</div>
+                        <div class="help-text">Se déplacer</div>
+                    </div>
+                </div>
+            </div>
+            <button class="help-close" onclick="hideHelp()">Compris !</button>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="share-modal" id="shareModal">
+        <div class="share-content">
+            <h3 class="share-title">Partager cette visite</h3>
+            
+            <div class="share-buttons">
+                <button class="share-btn" onclick="shareOn('whatsapp')">
+                    <span>📱</span>
+                    <span>WhatsApp</span>
+                </button>
+                <button class="share-btn" onclick="shareOn('facebook')">
+                    <span>📘</span>
+                    <span>Facebook</span>
+                </button>
+                <button class="share-btn" onclick="shareOn('twitter')">
+                    <span>🐦</span>
+                    <span>Twitter</span>
+                </button>
+                <button class="share-btn" onclick="shareOn('email')">
+                    <span>📧</span>
+                    <span>Email</span>
+                </button>
+            </div>
+
+            <div class="share-link">
+                <input type="text" class="share-input" value="https://immoscan.fr/v/appt-voltaire-x7k9" readonly>
+                <button class="copy-btn" onclick="copyLink()">Copier</button>
+            </div>
+
+            <button class="contact-btn" onclick="hideShare()" style="background: var(--gray-100); color: var(--gray-700);">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let isFullscreen = false;
+        let currentQuality = 'high';
+        let rotationX = 10;
+        let rotationY = 0;
+        let isDragging = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // Hide loading screen after delay
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }, 2000);
+
+        // Mouse/Touch controls for 3D viewer
+        const viewer = document.getElementById('viewer3d');
+        const room = document.getElementById('roomSimulation');
+
+        viewer.addEventListener('mousedown', startDrag);
+        viewer.addEventListener('mousemove', drag);
+        viewer.addEventListener('mouseup', endDrag);
+        viewer.addEventListener('mouseleave', endDrag);
+
+        viewer.addEventListener('touchstart', (e) => startDrag(e.touches[0]));
+        viewer.addEventListener('touchmove', (e) => drag(e.touches[0]));
+        viewer.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            viewer.style.cursor = 'grabbing';
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - lastX;
+            const deltaY = e.clientY - lastY;
+
+            rotationY += deltaX * 0.5;
+            rotationX = Math.max(-30, Math.min(30, rotationX - deltaY * 0.5));
+
+            room.style.animation = 'none';
+            room.style.transform = `translate(-50%, -50%) perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+
+            lastX = e.clientX;
+            lastY = e.clientY;
+        }
+
+        function endDrag() {
+            isDragging = false;
+            viewer.style.cursor = 'grab';
+        }
+
+        // Toggle functions
+        function toggleInfo() {
+            const panel = document.getElementById('infoPanel');
+            const icon = document.getElementById('toggleIcon');
+            
+            if (window.innerWidth <= 768) {
+                panel.classList.toggle('expanded');
+                icon.textContent = panel.classList.contains('expanded') ? '➖' : '➕';
+            } else {
+                panel.classList.toggle('collapsed');
+                icon.textContent = panel.classList.contains('collapsed') ? '➕' : '➖';
+            }
+        }
+
+        function toggleFullscreen() {
+            const container = document.querySelector('.viewer-container');
+            const icon = document.getElementById('fullscreenIcon');
+            
+            if (!isFullscreen) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+                container.classList.add('fullscreen');
+                icon.textContent = '⊡';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                container.classList.remove('fullscreen');
+                icon.textContent = '⛶';
+            }
+            isFullscreen = !isFullscreen;
+        }
+
+        function toggleQuality() {
+            const qualityText = document.getElementById('qualityText');
+            const qualityDot = document.querySelector('.quality-dot');
+            const toggle = document.querySelector('.quality-toggle');
+            
+            if (currentQuality === 'high') {
+                currentQuality = 'low';
+                qualityText.textContent = 'Mode économie';
+                toggle.classList.add('low');
+            } else {
+                currentQuality = 'high';
+                qualityText.textContent = 'Qualité HD';
+                toggle.classList.remove('low');
+            }
+        }
+
+        function showHelp() {
+            document.getElementById('helpOverlay').classList.add('show');
+        }
+
+        function hideHelp() {
+            document.getElementById('helpOverlay').classList.remove('show');
+        }
+
+        function showShare() {
+            document.getElementById('shareModal').classList.add('show');
+        }
+
+        function hideShare() {
+            document.getElementById('shareModal').classList.remove('show');
+        }
+
+        function showContactForm() {
+            alert('Ouverture du formulaire de contact...');
+        }
+
+        function navigateRoom(direction) {
+            // Simulate room navigation
+            const pointer = document.getElementById('mapPointer');
+            const currentLeft = parseInt(pointer.style.left);
+            
+            if (direction === 'left' && currentLeft > 20) {
+                pointer.style.left = (currentLeft - 20) + 'px';
+            } else if (direction === 'right' && currentLeft < 100) {
+                pointer.style.left = (currentLeft + 20) + 'px';
+            }
+        }
+
+        function goToHome() {
+            // Reset to entrance
+            document.getElementById('mapPointer').style.left = '40px';
+            document.getElementById('mapPointer').style.top = '30px';
+            rotationY = 0;
+            rotationX = 10;
+            room.style.transform = `translate(-50%, -50%) perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+        }
+
+        function shareOn(platform) {
+            const url = 'https://immoscan.fr/v/appt-voltaire-x7k9';
+            const text = 'Découvrez cette magnifique visite 3D !';
+            
+            switch(platform) {
+                case 'whatsapp':
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`);
+                    break;
+                case 'facebook':
+                    window.open(`https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+                    break;
+                case 'twitter':
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`);
+                    break;
+                case 'email':
+                    window.location.href = `mailto:?subject=Visite 3D intéressante&body=${encodeURIComponent(text + '\n\n' + url)}`;
+                    break;
+            }
+        }
+
+        function copyLink() {
+            const input = document.querySelector('.share-input');
+            input.select();
+            document.execCommand('copy');
+            
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copié !';
+            setTimeout(() => {
+                btn.textContent = 'Copier';
+            }, 2000);
+        }
+
+        function toggleMapSize() {
+            const map = document.querySelector('.mini-map');
+            if (map.style.width === '360px') {
+                map.style.width = '180px';
+                map.style.height = '120px';
+            } else {
+                map.style.width = '360px';
+                map.style.height = '240px';
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    navigateRoom('left');
+                    break;
+                case 'ArrowRight':
+                    navigateRoom('right');
+                    break;
+                case 'f':
+                    toggleFullscreen();
+                    break;
+                case 'h':
+                    showHelp();
+                    break;
+                case 'Escape':
+                    hideHelp();
+                    hideShare();
+                    break;
+            }
+        });
+
+        // Simulate real-time visitors
+        let visitors = 3;
+        setInterval(() => {
+            visitors += Math.floor(Math.random() * 3) - 1;
+            visitors = Math.max(1, Math.min(8, visitors));
+        }, 5000);
+
+        // Detect mobile for gestures
+        if ('ontouchstart' in window) {
+            document.querySelector('.touch-hint').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImmoScan 3D - Gestion des Biens</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--gray-700);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: var(--gray-100);
+            color: var(--gray-900);
+        }
+
+        .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-menu:hover {
+            background: var(--gray-100);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        /* Property list view */
+        .list-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            padding: 10px 16px;
+            width: 300px;
+            transition: all 0.2s;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .search-icon {
+            color: var(--gray-400);
+            margin-right: 12px;
+        }
+
+        .search-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-button {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-button:hover {
+            border-color: var(--gray-400);
+        }
+
+        .filter-button.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+        }
+
+        /* Property grid */
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .property-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .property-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .property-image {
+            position: relative;
+            height: 200px;
+            background: linear-gradient(to right, var(--gray-200), var(--gray-300));
+            overflow: hidden;
+        }
+
+        .property-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .property-badges {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.9);
+            color: white;
+        }
+
+        .badge-error {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+
+        .scan-status {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            box-shadow: var(--shadow);
+        }
+
+        .scan-status.completed {
+            color: var(--success);
+        }
+
+        .scan-status.processing {
+            color: var(--warning);
+        }
+
+        .scan-status.none {
+            color: var(--gray-500);
+        }
+
+        .property-content {
+            padding: 20px;
+        }
+
+        .property-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--gray-900);
+        }
+
+        .property-address {
+            color: var(--gray-600);
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .property-details {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--gray-700);
+        }
+
+        .property-detail {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .property-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .property-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: none;
+            color: var(--gray-600);
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .action-btn:hover {
+            background: var(--gray-100);
+            color: var(--gray-900);
+        }
+
+        /* Form styles */
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-subtitle {
+            color: var(--gray-600);
+        }
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--gray-900);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: var(--error);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Photo upload */
+        .photo-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .photo-upload-item {
+            position: relative;
+            aspect-ratio: 1;
+            border: 2px dashed var(--gray-300);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+            background: var(--gray-50);
+        }
+
+        .photo-upload-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .photo-upload-item.has-image {
+            border: none;
+        }
+
+        .photo-upload-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .upload-placeholder {
+            text-align: center;
+            color: var(--gray-500);
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        /* Features checkboxes */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* File upload for scan */
+        .scan-upload {
+            background: var(--gray-50);
+            border: 2px dashed var(--gray-300);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .scan-upload.dragover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .scan-upload-icon {
+            font-size: 48px;
+            color: var(--gray-400);
+            margin-bottom: 16px;
+        }
+
+        .scan-upload-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--gray-900);
+        }
+
+        .scan-upload-subtitle {
+            color: var(--gray-600);
+            margin-bottom: 20px;
+        }
+
+        .file-list {
+            margin-top: 24px;
+            space-y: 12px;
+        }
+
+        .file-item {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .file-size {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .file-progress {
+            width: 100px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .stat-change.negative {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 80px 32px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            color: var(--gray-300);
+            margin-bottom: 24px;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--gray-900);
+        }
+
+        .empty-subtitle {
+            color: var(--gray-600);
+            margin-bottom: 24px;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--gray-300);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* View toggle */
+        .view-toggle {
+            display: flex;
+            background: var(--gray-100);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .view-toggle button {
+            padding: 6px 12px;
+            border: none;
+            background: none;
+            color: var(--gray-600);
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .view-toggle button.active {
+            background: white;
+            color: var(--gray-900);
+            box-shadow: var(--shadow);
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .property-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">🏠</div>
+                    <span>ImmoScan 3D</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-item" onclick="showSection('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    <span>Tableau de bord</span>
+                </a>
+                <a class="nav-item active" onclick="showSection('properties')">
+                    <span class="nav-icon">🏘️</span>
+                    <span>Mes biens</span>
+                </a>
+                <a class="nav-item">
+                    <span class="nav-icon">📷</span>
+                    <span>Scanner</span>
+                </a>
+                <a class="nav-item">
+                    <span class="nav-icon">📈</span>
+                    <span>Analytics</span>
+                </a>
+                <a class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Paramètres</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="header-title">Gestion des biens</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showSection('create')">
+                        <span>➕</span>
+                        Nouveau bien
+                    </button>
+                    <div class="user-menu">
+                        <div class="user-avatar">JD</div>
+                        <span>Jean Dupont</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Dashboard Section -->
+                <div class="section" id="dashboard-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total des biens</div>
+                            <div class="stat-value">23</div>
+                            <span class="stat-change positive">
+                                ↑ +3 ce mois
+                            </span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Scans 3D actifs</div>
+                            <div class="stat-value">18</div>
+                            <span class="stat-change positive">
+                                ↑ 78% de completion
+                            </span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Visites totales</div>
+                            <div class="stat-value">1,234</div>
+                            <span class="stat-change positive">
+                                ↑ +23% vs mois dernier
+                            </span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Leads générés</div>
+                            <div class="stat-value">47</div>
+                            <span class="stat-change negative">
+                                ↓ -5% vs mois dernier
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Properties List Section -->
+                <div class="section active" id="properties-section">
+                    <!-- Controls -->
+                    <div class="list-controls">
+                        <div class="search-bar">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" placeholder="Rechercher un bien...">
+                        </div>
+                        
+                        <div class="filters">
+                            <select class="filter-button">
+                                <option>Type de bien</option>
+                                <option>Appartement</option>
+                                <option>Maison</option>
+                                <option>Bureau</option>
+                            </select>
+                            
+                            <select class="filter-button">
+                                <option>Statut</option>
+                                <option>Actif</option>
+                                <option>Brouillon</option>
+                                <option>Archivé</option>
+                            </select>
+                            
+                            <select class="filter-button">
+                                <option>Scan 3D</option>
+                                <option>Avec scan</option>
+                                <option>Sans scan</option>
+                                <option>En cours</option>
+                            </select>
+                            
+                            <div class="view-toggle">
+                                <button class="active">Grille</button>
+                                <button>Liste</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Property Grid -->
+                    <div class="property-grid">
+                        <!-- Property Card 1 -->
+                        <div class="property-card" onclick="showSection('detail')">
+                            <div class="property-image">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-family='system-ui' font-size='20'%3EAppartement moderne%3C/text%3E%3C/svg%3E" alt="Appartement">
+                                <div class="property-badges">
+                                    <span class="badge badge-success">Actif</span>
+                                </div>
+                                <div class="scan-status completed">
+                                    <span>✅</span>
+                                    <span>Scan 3D</span>
+                                </div>
+                            </div>
+                            <div class="property-content">
+                                <h3 class="property-title">Appartement 3 pièces lumineux</h3>
+                                <p class="property-address">
+                                    <span>📍</span>
+                                    15 rue Voltaire, Paris 11ème
+                                </p>
+                                <div class="property-details">
+                                    <span class="property-detail">
+                                        <span>🏠</span> 75 m²
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🛏️</span> 2 chambres
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🚿</span> 1 SDB
+                                    </span>
+                                </div>
+                                <div class="property-price">450 000 €</div>
+                                <div class="property-actions">
+                                    <button class="action-btn">
+                                        <span>👁️</span>
+                                        234 vues
+                                    </button>
+                                    <button class="action-btn">
+                                        <span>📧</span>
+                                        8 leads
+                                    </button>
+                                    <button class="action-btn">
+                                        <span>📊</span>
+                                        Stats
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Property Card 2 -->
+                        <div class="property-card">
+                            <div class="property-image">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-family='system-ui' font-size='20'%3EVilla avec jardin%3C/text%3E%3C/svg%3E" alt="Villa">
+                                <div class="property-badges">
+                                    <span class="badge badge-success">Actif</span>
+                                    <span class="badge badge-warning">Nouveau</span>
+                                </div>
+                                <div class="scan-status processing">
+                                    <span class="spinner"></span>
+                                    <span>En cours</span>
+                                </div>
+                            </div>
+                            <div class="property-content">
+                                <h3 class="property-title">Villa moderne avec piscine</h3>
+                                <p class="property-address">
+                                    <span>📍</span>
+                                    23 avenue des Fleurs, Neuilly
+                                </p>
+                                <div class="property-details">
+                                    <span class="property-detail">
+                                        <span>🏠</span> 220 m²
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🛏️</span> 4 chambres
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🌳</span> 500 m²
+                                    </span>
+                                </div>
+                                <div class="property-price">1 250 000 €</div>
+                                <div class="property-actions">
+                                    <button class="action-btn">
+                                        <span>👁️</span>
+                                        56 vues
+                                    </button>
+                                    <button class="action-btn">
+                                        <span>📧</span>
+                                        2 leads
+                                    </button>
+                                    <button class="action-btn">
+                                        <span>📊</span>
+                                        Stats
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Property Card 3 -->
+                        <div class="property-card">
+                            <div class="property-image">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-family='system-ui' font-size='20'%3EStudio rénové%3C/text%3E%3C/svg%3E" alt="Studio">
+                                <div class="property-badges">
+                                    <span class="badge badge-error">Brouillon</span>
+                                </div>
+                                <div class="scan-status none">
+                                    <span>📷</span>
+                                    <span>Pas de scan</span>
+                                </div>
+                            </div>
+                            <div class="property-content">
+                                <h3 class="property-title">Studio rénové quartier Latin</h3>
+                                <p class="property-address">
+                                    <span>📍</span>
+                                    8 rue Mouffetard, Paris 5ème
+                                </p>
+                                <div class="property-details">
+                                    <span class="property-detail">
+                                        <span>🏠</span> 28 m²
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🏛️</span> 3ème étage
+                                    </span>
+                                </div>
+                                <div class="property-price">285 000 €</div>
+                                <div class="property-actions">
+                                    <button class="action-btn" onclick="showSection('upload')">
+                                        <span>📤</span>
+                                        Upload scan
+                                    </button>
+                                    <button class="action-btn">
+                                        <span>✏️</span>
+                                        Modifier
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create/Edit Property Section -->
+                <div class="section" id="create-section">
+                    <div class="form-container">
+                        <div class="form-header">
+                            <h2 class="form-title">Nouveau bien immobilier</h2>
+                            <p class="form-subtitle">Remplissez les informations pour créer une nouvelle fiche bien</p>
+                        </div>
+
+                        <form>
+                            <!-- Basic Information -->
+                            <div class="form-section">
+                                <h3 class="section-title">Informations générales</h3>
+                                
+                                <div class="form-group full-width">
+                                    <label class="form-label">
+                                        Titre du bien <span class="required">*</span>
+                                    </label>
+                                    <input type="text" class="form-input" placeholder="Ex: Appartement 3 pièces lumineux">
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Type de bien <span class="required">*</span>
+                                        </label>
+                                        <select class="form-select">
+                                            <option>Appartement</option>
+                                            <option>Maison</option>
+                                            <option>Bureau</option>
+                                            <option>Local commercial</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Statut <span class="required">*</span>
+                                        </label>
+                                        <select class="form-select">
+                                            <option>Brouillon</option>
+                                            <option>Actif</option>
+                                            <option>Archivé</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label class="form-label">
+                                        Adresse complète <span class="required">*</span>
+                                    </label>
+                                    <input type="text" class="form-input" placeholder="Numéro et nom de rue">
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Code postal <span class="required">*</span>
+                                        </label>
+                                        <input type="text" class="form-input" placeholder="75001">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Ville <span class="required">*</span>
+                                        </label>
+                                        <input type="text" class="form-input" placeholder="Paris">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Details -->
+                            <div class="form-section">
+                                <h3 class="section-title">Détails du bien</h3>
+                                
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Prix (€)</label>
+                                        <input type="number" class="form-input" placeholder="450000">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Surface (m²)</label>
+                                        <input type="number" class="form-input" placeholder="75">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Nombre de pièces</label>
+                                        <input type="number" class="form-input" placeholder="3">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Chambres</label>
+                                        <input type="number" class="form-input" placeholder="2">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Salles de bain</label>
+                                        <input type="number" class="form-input" placeholder="1">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Étage</label>
+                                        <input type="number" class="form-input" placeholder="3">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Année de construction</label>
+                                        <input type="number" class="form-input" placeholder="1970">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Nombre d'étages total</label>
+                                        <input type="number" class="form-input" placeholder="6">
+                                    </div>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-textarea" placeholder="Décrivez le bien en détail..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Features -->
+                            <div class="form-section">
+                                <h3 class="section-title">Caractéristiques</h3>
+                                
+                                <div class="features-grid">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="elevator">
+                                        <label for="elevator">Ascenseur</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="parking">
+                                        <label for="parking">Parking</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="balcony">
+                                        <label for="balcony">Balcon</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="terrace">
+                                        <label for="terrace">Terrasse</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="garage">
+                                        <label for="garage">Garage</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="cellar">
+                                        <label for="cellar">Cave</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="garden">
+                                        <label for="garden">Jardin</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pool">
+                                        <label for="pool">Piscine</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Photos -->
+                            <div class="form-section">
+                                <h3 class="section-title">Photos</h3>
+                                
+                                <div class="photo-upload-grid">
+                                    <div class="photo-upload-item">
+                                        <div class="upload-placeholder">
+                                            <div class="upload-icon">📷</div>
+                                            <div>Photo principale</div>
+                                        </div>
+                                    </div>
+                                    <div class="photo-upload-item">
+                                        <div class="upload-placeholder">
+                                            <div class="upload-icon">➕</div>
+                                            <div>Ajouter</div>
+                                        </div>
+                                    </div>
+                                    <div class="photo-upload-item">
+                                        <div class="upload-placeholder">
+                                            <div class="upload-icon">➕</div>
+                                            <div>Ajouter</div>
+                                        </div>
+                                    </div>
+                                    <div class="photo-upload-item">
+                                        <div class="upload-placeholder">
+                                            <div class="upload-icon">➕</div>
+                                            <div>Ajouter</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 32px;">
+                                <button type="button" class="btn btn-secondary" onclick="showSection('properties')">
+                                    Annuler
+                                </button>
+                                <button type="button" class="btn btn-primary">
+                                    Enregistrer le bien
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Upload Scan Section -->
+                <div class="section" id="upload-section">
+                    <div class="form-container">
+                        <div class="form-header">
+                            <h2 class="form-title">Upload des fichiers de scan 3D</h2>
+                            <p class="form-subtitle">Studio rénové quartier Latin - 8 rue Mouffetard</p>
+                        </div>
+
+                        <div class="scan-upload" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                            <div class="scan-upload-icon">📁</div>
+                            <h3 class="scan-upload-title">Glissez vos fichiers ici</h3>
+                            <p class="scan-upload-subtitle">ou cliquez pour sélectionner</p>
+                            <button class="btn btn-primary">
+                                Sélectionner les fichiers
+                            </button>
+                            <p style="margin-top: 16px; font-size: 13px; color: var(--gray-500);">
+                                Formats acceptés : MP4 + BIN (fichiers de profondeur) • Max 2GB par fichier
+                            </p>
+                        </div>
+
+                        <div class="file-list">
+                            <div class="file-item">
+                                <div class="file-icon">🎬</div>
+                                <div class="file-info">
+                                    <div class="file-name">scan_studio_mouffetard.mp4</div>
+                                    <div class="file-size">487 MB</div>
+                                </div>
+                                <div class="file-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="file-item">
+                                <div class="file-icon">📊</div>
+                                <div class="file-info">
+                                    <div class="file-name">scan_studio_mouffetard.bin</div>
+                                    <div class="file-size">234 MB</div>
+                                </div>
+                                <div class="file-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 45%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; justify-content: space-between; margin-top: 32px;">
+                            <button type="button" class="btn btn-secondary" onclick="showSection('properties')">
+                                Retour
+                            </button>
+                            <button type="button" class="btn btn-primary">
+                                Lancer le traitement 3D
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Detail Section -->
+                <div class="section" id="detail-section">
+                    <div style="max-width: 1200px; margin: 0 auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+                            <button class="btn btn-secondary" onclick="showSection('properties')">
+                                ← Retour à la liste
+                            </button>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="btn btn-secondary">
+                                    <span>✏️</span>
+                                    Modifier
+                                </button>
+                                <button class="btn btn-primary">
+                                    <span>👁️</span>
+                                    Voir la visite 3D
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: var(--shadow);">
+                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">
+                                <div>
+                                    <h2 style="font-size: 28px; margin-bottom: 16px;">Appartement 3 pièces lumineux</h2>
+                                    <p style="color: var(--gray-600); font-size: 18px; margin-bottom: 24px;">
+                                        📍 15 rue Voltaire, Paris 11ème
+                                    </p>
+                                    
+                                    <div style="display: flex; gap: 24px; margin-bottom: 32px;">
+                                        <div>
+                                            <span style="color: var(--gray-500); font-size: 14px;">Surface</span>
+                                            <p style="font-size: 20px; font-weight: 600;">75 m²</p>
+                                        </div>
+                                        <div>
+                                            <span style="color: var(--gray-500); font-size: 14px;">Pièces</span>
+                                            <p style="font-size: 20px; font-weight: 600;">3 pièces</p>
+                                        </div>
+                                        <div>
+                                            <span style="color: var(--gray-500); font-size: 14px;">Chambres</span>
+                                            <p style="font-size: 20px; font-weight: 600;">2</p>
+                                        </div>
+                                        <div>
+                                            <span style="color: var(--gray-500); font-size: 14px;">Étage</span>
+                                            <p style="font-size: 20px; font-weight: 600;">3ème</p>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom: 32px;">
+                                        <h3 style="font-size: 18px; margin-bottom: 16px;">Description</h3>
+                                        <p style="line-height: 1.6; color: var(--gray-700);">
+                                            Magnifique appartement de 75m² situé au 3ème étage d'un immeuble haussmannien. 
+                                            Très lumineux avec ses grandes fenêtres donnant sur rue. Comprend un séjour spacieux, 
+                                            deux chambres confortables, une cuisine équipée et une salle de bain moderne. 
+                                            Proche de toutes commodités et transports.
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <h3 style="font-size: 18px; margin-bottom: 16px;">Caractéristiques</h3>
+                                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="color: var(--success);">✓</span> Ascenseur
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="color: var(--success);">✓</span> Balcon
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="color: var(--success);">✓</span> Cave
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="color: var(--gray-300);">✗</span> Parking
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="background: var(--primary-light); padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+                                        <p style="font-size: 32px; font-weight: 700; color: var(--primary);">450 000 €</p>
+                                        <p style="color: var(--gray-600); margin-top: 8px;">6 000 €/m²</p>
+                                    </div>
+
+                                    <div style="background: var(--gray-50); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+                                        <h4 style="font-size: 16px; margin-bottom: 16px;">Statut du scan 3D</h4>
+                                        <div style="display: flex; align-items: center; gap: 12px; color: var(--success);">
+                                            <span style="font-size: 24px;">✅</span>
+                                            <div>
+                                                <p style="font-weight: 600;">Scan complété</p>
+                                                <p style="font-size: 13px; color: var(--gray-500);">Mis à jour il y a 2 jours</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="background: var(--gray-50); padding: 20px; border-radius: 12px;">
+                                        <h4 style="font-size: 16px; margin-bottom: 16px;">Statistiques</h4>
+                                        <div style="space-y: 12px;">
+                                            <div style="margin-bottom: 12px;">
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                                    <span style="color: var(--gray-600);">Vues totales</span>
+                                                    <span style="font-weight: 600;">234</span>
+                                                </div>
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                                    <span style="color: var(--gray-600);">Cette semaine</span>
+                                                    <span style="font-weight: 600;">+47</span>
+                                                </div>
+                                            </div>
+                                            <div style="border-top: 1px solid var(--gray-200); padding-top: 12px;">
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                                    <span style="color: var(--gray-600);">Leads générés</span>
+                                                    <span style="font-weight: 600;">8</span>
+                                                </div>
+                                                <div style="display: flex; justify-content: space-between;">
+                                                    <span style="color: var(--gray-600);">Taux conversion</span>
+                                                    <span style="font-weight: 600; color: var(--success);">3.4%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            
+            // Show selected section
+            const sectionElement = document.getElementById(section + '-section');
+            if (sectionElement) {
+                sectionElement.classList.add('active');
+            }
+            
+            // Update header title
+            const titles = {
+                'dashboard': 'Tableau de bord',
+                'properties': 'Mes biens',
+                'create': 'Nouveau bien',
+                'upload': 'Upload scan 3D',
+                'detail': 'Détails du bien'
+            };
+            document.querySelector('.header-title').textContent = titles[section] || 'Gestion des biens';
+            
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (section === 'properties' || section === 'create' || section === 'upload' || section === 'detail') {
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+            } else if (section === 'dashboard') {
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files);
+            console.log('Files dropped:', files);
+            // Handle file upload here
+        }
+
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stat cards on load
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

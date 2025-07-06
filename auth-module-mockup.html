@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImmoScan 3D - Authentification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary: #f59e0b;
+            --success: #10b981;
+            --error: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            color: var(--gray-800);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Navigation pour les maquettes */
+        .nav-mockup {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .nav-mockup button {
+            padding: 8px 16px;
+            border: none;
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-mockup button:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-mockup button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Container principal */
+        .auth-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 440px;
+            overflow: hidden;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header avec logo */
+        .auth-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 40px 30px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-icon {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 10px;
+            margin-right: 10px;
+            position: relative;
+            vertical-align: middle;
+        }
+
+        .logo-icon::before {
+            content: '🏠';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+        }
+
+        .tagline {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Contenu du formulaire */
+        .auth-content {
+            padding: 40px 30px;
+        }
+
+        .auth-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+            color: var(--gray-800);
+        }
+
+        /* Formulaires */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--gray-50);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-input.error {
+            border-color: var(--error);
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon .form-input {
+            padding-left: 44px;
+        }
+
+        .input-icon .icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 18px;
+        }
+
+        /* Messages d'erreur */
+        .error-message {
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .form-input.error ~ .error-message {
+            display: block;
+        }
+
+        /* Password strength */
+        .password-strength {
+            margin-top: 8px;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .password-strength-bar.weak {
+            width: 33%;
+            background: var(--error);
+        }
+
+        .password-strength-bar.medium {
+            width: 66%;
+            background: var(--secondary);
+        }
+
+        .password-strength-bar.strong {
+            width: 100%;
+            background: var(--success);
+        }
+
+        /* Checkbox */
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .form-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .form-checkbox label {
+            font-size: 14px;
+            color: var(--gray-600);
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        /* Links */
+        .form-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .form-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Divider */
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: var(--gray-500);
+            font-size: 14px;
+            position: relative;
+        }
+
+        /* Success state */
+        .success-message {
+            background: var(--success);
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-icon {
+            font-size: 24px;
+        }
+
+        /* Profile section */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: 600;
+            margin-right: 20px;
+        }
+
+        .profile-info h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .profile-info p {
+            color: var(--gray-500);
+            font-size: 14px;
+        }
+
+        /* Sections cachées */
+        .auth-section {
+            display: none;
+        }
+
+        .auth-section.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .auth-container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .nav-mockup {
+                top: 10px;
+                padding: 8px 12px;
+            }
+            
+            .nav-mockup button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Photo upload */
+        .photo-upload {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+
+        .photo-upload-input {
+            display: none;
+        }
+
+        .photo-upload-label {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--gray-100);
+            border: 3px dashed var(--gray-300);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-upload-label:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .photo-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .photo-upload-icon {
+            font-size: 40px;
+            color: var(--gray-400);
+        }
+
+        .photo-upload-text {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation entre les maquettes -->
+    <div class="nav-mockup">
+        <button onclick="showSection('login')" class="active" id="login-btn">Connexion</button>
+        <button onclick="showSection('register')" id="register-btn">Inscription</button>
+        <button onclick="showSection('reset')" id="reset-btn">Mot de passe</button>
+        <button onclick="showSection('profile')" id="profile-btn">Profil</button>
+    </div>
+
+    <div class="auth-container">
+        <!-- Header commun -->
+        <div class="auth-header">
+            <div class="logo">
+                <span class="logo-icon"></span>
+                ImmoScan 3D
+            </div>
+            <p class="tagline">Visites virtuelles pour professionnels de l'immobilier</p>
+        </div>
+
+        <!-- Section Connexion -->
+        <div class="auth-section active" id="login-section">
+            <div class="auth-content">
+                <h1 class="auth-title">Connexion</h1>
+                
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">Email professionnel</label>
+                        <div class="input-icon">
+                            <span class="icon">📧</span>
+                            <input type="email" class="form-input" placeholder="agent@agence.fr" value="jean.dupont@agence.fr">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mot de passe</label>
+                        <div class="input-icon">
+                            <span class="icon">🔒</span>
+                            <input type="password" class="form-input" placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="remember" checked>
+                        <label for="remember">Se souvenir de moi (7 jours)</label>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" onclick="simulateLogin()">
+                        Se connecter
+                    </button>
+                </form>
+
+                <a href="#" class="form-link" onclick="showSection('reset')">Mot de passe oublié ?</a>
+
+                <div class="divider">
+                    <span>Nouveau sur ImmoScan 3D ?</span>
+                </div>
+
+                <button class="btn btn-secondary" onclick="showSection('register')">
+                    Créer un compte
+                </button>
+            </div>
+        </div>
+
+        <!-- Section Inscription -->
+        <div class="auth-section" id="register-section">
+            <div class="auth-content">
+                <h1 class="auth-title">Inscription</h1>
+                
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">Prénom *</label>
+                        <input type="text" class="form-input" placeholder="Jean">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nom *</label>
+                        <input type="text" class="form-input" placeholder="Dupont">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email professionnel *</label>
+                        <input type="email" class="form-input" placeholder="agent@agence.fr">
+                        <span class="error-message">Cet email est déjà utilisé</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nom de l'agence *</label>
+                        <input type="text" class="form-input" placeholder="Agence Centrale">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mot de passe * (min. 8 caractères)</label>
+                        <input type="password" class="form-input" placeholder="••••••••" oninput="checkPasswordStrength(this)">
+                        <div class="password-strength">
+                            <div class="password-strength-bar" id="strength-bar"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confirmer le mot de passe *</label>
+                        <input type="password" class="form-input" placeholder="••••••••">
+                    </div>
+
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="terms">
+                        <label for="terms">J'accepte les conditions d'utilisation</label>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" onclick="simulateRegister()">
+                        Créer mon compte
+                    </button>
+                </form>
+
+                <a href="#" class="form-link" onclick="showSection('login')">Déjà un compte ? Se connecter</a>
+            </div>
+        </div>
+
+        <!-- Section Reset Password -->
+        <div class="auth-section" id="reset-section">
+            <div class="auth-content">
+                <h1 class="auth-title">Réinitialiser le mot de passe</h1>
+                
+                <p style="text-align: center; color: var(--gray-600); margin-bottom: 30px;">
+                    Entrez votre email pour recevoir un lien de réinitialisation
+                </p>
+
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">Email professionnel</label>
+                        <input type="email" class="form-input" placeholder="agent@agence.fr">
+                    </div>
+
+                    <button type="button" class="btn btn-primary" onclick="simulateReset()">
+                        Envoyer le lien
+                    </button>
+                </form>
+
+                <a href="#" class="form-link" onclick="showSection('login')">Retour à la connexion</a>
+            </div>
+        </div>
+
+        <!-- Section Profile -->
+        <div class="auth-section" id="profile-section">
+            <div class="auth-content">
+                <div class="profile-header">
+                    <div class="profile-avatar">JD</div>
+                    <div class="profile-info">
+                        <h2>Jean Dupont</h2>
+                        <p>Agence Centrale • Membre depuis janvier 2024</p>
+                    </div>
+                </div>
+
+                <form>
+                    <div class="photo-upload">
+                        <input type="file" id="photo" class="photo-upload-input" accept="image/*">
+                        <label for="photo" class="photo-upload-label">
+                            <span class="photo-upload-icon">📷</span>
+                        </label>
+                        <span class="photo-upload-text">Changer la photo</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" class="form-input" value="Jean">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-input" value="Dupont">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email (non modifiable)</label>
+                        <input type="email" class="form-input" value="jean.dupont@agence.fr" disabled style="background: var(--gray-100);">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Téléphone</label>
+                        <input type="tel" class="form-input" placeholder="+33 6 12 34 56 78" value="+33 6 12 34 56 78">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nom de l'agence</label>
+                        <input type="text" class="form-input" value="Agence Centrale">
+                    </div>
+
+                    <button type="button" class="btn btn-primary">
+                        Enregistrer les modifications
+                    </button>
+
+                    <div class="divider">
+                        <span>Sécurité</span>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" onclick="showSection('reset')">
+                        Changer le mot de passe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.auth-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-mockup button').forEach(b => b.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(section + '-section').classList.add('active');
+            document.getElementById(section + '-btn').classList.add('active');
+            
+            // Reset container animation
+            const container = document.querySelector('.auth-container');
+            container.style.animation = 'none';
+            setTimeout(() => {
+                container.style.animation = 'slideIn 0.4s ease-out';
+            }, 10);
+        }
+
+        function checkPasswordStrength(input) {
+            const password = input.value;
+            const strengthBar = document.getElementById('strength-bar');
+            
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            strengthBar.className = 'password-strength-bar';
+            if (strength <= 1) {
+                strengthBar.classList.add('weak');
+            } else if (strength === 2) {
+                strengthBar.classList.add('medium');
+            } else if (strength >= 3) {
+                strengthBar.classList.add('strong');
+            }
+        }
+
+        function simulateLogin() {
+            const button = event.target;
+            button.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                alert('Connexion réussie ! (Simulation)');
+                button.innerHTML = 'Se connecter';
+                button.disabled = false;
+            }, 1500);
+        }
+
+        function simulateRegister() {
+            const button = event.target;
+            button.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                // Show success message
+                const content = document.querySelector('#register-section .auth-content');
+                content.innerHTML = `
+                    <div class="success-message">
+                        <span class="success-icon">✅</span>
+                        <div>
+                            <strong>Compte créé avec succès !</strong><br>
+                            Vérifiez vos emails pour activer votre compte.
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showSection('login')">
+                        Retour à la connexion
+                    </button>
+                `;
+            }, 1500);
+        }
+
+        function simulateReset() {
+            const button = event.target;
+            button.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                const content = document.querySelector('#reset-section .auth-content');
+                content.innerHTML = `
+                    <div class="success-message">
+                        <span class="success-icon">📧</span>
+                        <div>
+                            <strong>Email envoyé !</strong><br>
+                            Vérifiez votre boîte de réception pour réinitialiser votre mot de passe.
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showSection('login')">
+                        Retour à la connexion
+                    </button>
+                `;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

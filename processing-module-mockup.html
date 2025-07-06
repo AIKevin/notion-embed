@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImmoScan 3D - Module Traitement</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        /* Queue Controls */
+        .queue-controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .queue-info {
+            display: flex;
+            gap: 32px;
+        }
+
+        .queue-stat {
+            text-align: center;
+        }
+
+        .queue-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+            display: block;
+        }
+
+        .queue-stat-label {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .queue-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        /* Process Cards */
+        .process-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .process-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .process-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .process-card.completed {
+            border-left: 4px solid var(--success);
+        }
+
+        .process-card.processing {
+            border-left: 4px solid var(--warning);
+            animation: processing-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes processing-pulse {
+            0%, 100% { box-shadow: var(--shadow); }
+            50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+        }
+
+        .process-card.error {
+            border-left: 4px solid var(--error);
+        }
+
+        .process-card.queued {
+            border-left: 4px solid var(--gray-300);
+        }
+
+        .process-header {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .process-info {
+            flex: 1;
+        }
+
+        .process-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .process-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .process-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 8px;
+            background: none;
+            border: none;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        /* Process Details */
+        .process-details {
+            padding: 0 24px 20px;
+            border-top: 1px solid var(--gray-100);
+            display: none;
+        }
+
+        .process-card.expanded .process-details {
+            display: block;
+            padding-top: 20px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge.uploading {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .status-badge.queued {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .status-badge.processing {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .status-badge.completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-badge.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        /* Progress Bars */
+        .progress-section {
+            margin-top: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.success {
+            background: var(--success);
+        }
+
+        .progress-fill.warning {
+            background: var(--warning);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        /* Upload Files */
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: 8px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .file-size {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .file-status {
+            font-size: 20px;
+        }
+
+        /* Timeline */
+        .timeline {
+            margin-top: 16px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            padding: 12px 0;
+            position: relative;
+        }
+
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 44px;
+            bottom: -12px;
+            width: 2px;
+            background: var(--gray-200);
+        }
+
+        .timeline-dot {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 2px solid var(--gray-300);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .timeline-dot.completed {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .timeline-dot.active {
+            background: var(--warning);
+            border-color: var(--warning);
+            color: white;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .timeline-time {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 32px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-xl);
+            max-width: 400px;
+            transform: translateX(500px);
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .notification-message {
+            color: var(--gray-600);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 32px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            color: var(--gray-300);
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-message {
+            color: var(--gray-600);
+            margin-bottom: 24px;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--gray-300);
+            border-radius: 50%;
+            border-top-color: var(--warning);
+            animation: spin 1s linear infinite;
+        }
+
+        .spinner.small {
+            width: 12px;
+            height: 12px;
+            border-width: 2px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .error-details {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .error-title {
+            color: var(--error);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-message {
+            color: var(--gray-700);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .error-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .error-btn.retry {
+            background: var(--error);
+            color: white;
+        }
+
+        .error-btn.retry:hover {
+            background: #dc2626;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .connection-status.offline .connection-dot {
+            background: var(--error);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .queue-info {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .files-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .notification {
+                right: 20px;
+                left: 20px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">🏠</div>
+                    <span>ImmoScan 3D</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="header-title">File de traitement</h1>
+                <div class="header-actions">
+                    <div class="connection-status">
+                        <div class="connection-dot"></div>
+                        <span>Connexion stable</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Queue Controls -->
+                <div class="queue-controls">
+                    <div class="queue-info">
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">4</span>
+                            <span class="queue-stat-label">En attente</span>
+                        </div>
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">2</span>
+                            <span class="queue-stat-label">En cours</span>
+                        </div>
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">18</span>
+                            <span class="queue-stat-label">Terminés</span>
+                        </div>
+                        <div class="queue-stat">
+                            <span class="queue-stat-value">2.1 GB</span>
+                            <span class="queue-stat-label">À traiter</span>
+                        </div>
+                    </div>
+                    <div class="queue-actions">
+                        <button class="btn btn-secondary" onclick="pauseAll()">
+                            <span>⏸️</span> Tout pauser
+                        </button>
+                        <button class="btn btn-primary" onclick="showNotification()">
+                            <span>🔄</span> Actualiser
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Process List -->
+                <div class="process-list">
+                    <!-- Processing Item 1 - Upload in progress -->
+                    <div class="process-card processing" onclick="toggleExpand(this)">
+                        <div class="process-header">
+                            <div class="process-info">
+                                <div class="process-title">
+                                    <span>Appartement 3 pièces - Voltaire</span>
+                                    <span class="status-badge uploading">
+                                        <span class="spinner small"></span>
+                                        Upload en cours
+                                    </span>
+                                </div>
+                                <div class="process-meta">
+                                    <span>📍 Paris 11ème</span>
+                                    <span>📐 75 m²</span>
+                                    <span>📁 487 MB</span>
+                                </div>
+                            </div>
+                            <div class="process-actions">
+                                <button class="action-btn" onclick="pauseUpload(event)">
+                                    <span>⏸️</span>
+                                </button>
+                                <button class="action-btn">
+                                    <span>❌</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="process-details">
+                            <div class="progress-section">
+                                <div class="progress-header">
+                                    <span>Upload des fichiers</span>
+                                    <span>45%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 45%"></div>
+                                </div>
+                                <div class="progress-info">
+                                    <span>234 MB / 487 MB</span>
+                                    <span>~2 min restantes</span>
+                                </div>
+                            </div>
+                            <div class="files-grid">
+                                <div class="file-item">
+                                    <div class="file-icon">🎬</div>
+                                    <div class="file-info">
+                                        <div class="file-name">scan_voltaire.mp4</div>
+                                        <div class="file-size">298 MB</div>
+                                    </div>
+                                    <div class="file-status">⏳</div>
+                                </div>
+                                <div class="file-item">
+                                    <div class="file-icon">📊</div>
+                                    <div class="file-info">
+                                        <div class="file-name">scan_voltaire.bin</div>
+                                        <div class="file-size">189 MB</div>
+                                    </div>
+                                    <div class="file-status">⏳</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Item 2 - In queue -->
+                    <div class="process-card queued" onclick="toggleExpand(this)">
+                        <div class="process-header">
+                            <div class="process-info">
+                                <div class="process-title">
+                                    <span>Maison avec jardin - Neuilly</span>
+                                    <span class="status-badge queued">
+                                        <span>⏳</span>
+                                        En attente
+                                    </span>
+                                </div>
+                                <div class="process-meta">
+                                    <span>📍 Neuilly-sur-Seine</span>
+                                    <span>📐 220 m²</span>
+                                    <span>📁 1.2 GB</span>
+                                    <span>Position: #3</span>
+                                </div>
+                            </div>
+                            <div class="process-actions">
+                                <button class="action-btn" title="Priorité haute">
+                                    <span>⬆️</span>
+                                </button>
+                                <button class="action-btn">
+                                    <span>❌</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="process-details">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-dot completed">✓</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Upload terminé</div>
+                                        <div class="timeline-time">Il y a 5 minutes</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot">⏳</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">En file d'attente</div>
+                                        <div class="timeline-time">Temps estimé: 15-20 min</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Item 3 - Processing -->
+                    <div class="process-card processing expanded" onclick="toggleExpand(this)">
+                        <div class="process-header">
+                            <div class="process-info">
+                                <div class="process-title">
+                                    <span>Bureau moderne - La Défense</span>
+                                    <span class="status-badge processing">
+                                        <span class="spinner small"></span>
+                                        Traitement 3D
+                                    </span>
+                                </div>
+                                <div class="process-meta">
+                                    <span>📍 La Défense</span>
+                                    <span>📐 180 m²</span>
+                                    <span>⏱️ Depuis 8 min</span>
+                                </div>
+                            </div>
+                            <div class="process-actions">
+                                <button class="action-btn" disabled>
+                                    <span>👁️</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="process-details">
+                            <div class="progress-section">
+                                <div class="progress-header">
+                                    <span>Reconstruction 3D</span>
+                                    <span>72%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill warning" style="width: 72%"></div>
+                                </div>
+                                <div class="progress-info">
+                                    <span>Étape: Génération du maillage</span>
+                                    <span>~3 min restantes</span>
+                                </div>
+                            </div>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-dot completed">✓</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Upload terminé</div>
+                                        <div class="timeline-time">14:15</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot completed">✓</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Validation des fichiers</div>
+                                        <div class="timeline-time">14:18</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot active">🔄</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Reconstruction en cours</div>
+                                        <div class="timeline-time">Démarré à 14:22</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot">⏳</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Optimisation web</div>
+                                        <div class="timeline-time">En attente</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Item 4 - Error -->
+                    <div class="process-card error" onclick="toggleExpand(this)">
+                        <div class="process-header">
+                            <div class="process-info">
+                                <div class="process-title">
+                                    <span>Studio rénové - Quartier Latin</span>
+                                    <span class="status-badge error">
+                                        <span>❌</span>
+                                        Échec
+                                    </span>
+                                </div>
+                                <div class="process-meta">
+                                    <span>📍 Paris 5ème</span>
+                                    <span>📐 28 m²</span>
+                                    <span>⚠️ Action requise</span>
+                                </div>
+                            </div>
+                            <div class="process-actions">
+                                <button class="action-btn" onclick="retryProcess(event)">
+                                    <span>🔄</span>
+                                </button>
+                                <button class="action-btn">
+                                    <span>🗑️</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="process-details">
+                            <div class="error-details">
+                                <div class="error-title">
+                                    <span>⚠️</span>
+                                    Qualité insuffisante détectée
+                                </div>
+                                <div class="error-message">
+                                    Le scan ne contient pas assez de données de profondeur. Vérifiez que :
+                                    <ul style="margin-top: 8px; margin-left: 20px;">
+                                        <li>L'éclairage était suffisant lors de la capture</li>
+                                        <li>Le mouvement n'était pas trop rapide</li>
+                                        <li>Toutes les zones ont été couvertes</li>
+                                    </ul>
+                                </div>
+                                <div class="error-actions">
+                                    <button class="error-btn retry" onclick="retryProcess(event)">
+                                        Réessayer avec les mêmes fichiers
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="uploadNew(event)">
+                                        Upload nouveaux fichiers
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Item 5 - Completed -->
+                    <div class="process-card completed" onclick="toggleExpand(this)">
+                        <div class="process-header">
+                            <div class="process-info">
+                                <div class="process-title">
+                                    <span>Villa moderne - Bord de mer</span>
+                                    <span class="status-badge completed">
+                                        <span>✅</span>
+                                        Terminé
+                                    </span>
+                                </div>
+                                <div class="process-meta">
+                                    <span>📍 Deauville</span>
+                                    <span>📐 350 m²</span>
+                                    <span>✨ Score qualité: 94/100</span>
+                                </div>
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-primary" onclick="viewTour(event)" style="padding: 8px 16px;">
+                                    <span>👁️</span> Voir la visite
+                                </button>
+                            </div>
+                        </div>
+                        <div class="process-details">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
+                                <div style="background: var(--gray-50); padding: 16px; border-radius: 8px;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Durée totale</div>
+                                    <div style="color: var(--gray-600);">22 minutes</div>
+                                </div>
+                                <div style="background: var(--gray-50); padding: 16px; border-radius: 8px;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Qualité</div>
+                                    <div style="color: var(--success);">Excellente (94/100)</div>
+                                </div>
+                                <div style="background: var(--gray-50); padding: 16px; border-radius: 8px;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Taille finale</div>
+                                    <div style="color: var(--gray-600);">47 MB</div>
+                                </div>
+                                <div style="background: var(--gray-50); padding: 16px; border-radius: 8px;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Résolution</div>
+                                    <div style="color: var(--gray-600);">4K optimisé</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" onclick="shareLink(event)" style="flex: 1;">
+                                    <span>🔗</span> Copier le lien
+                                </button>
+                                <button class="btn btn-secondary" onclick="downloadQR(event)" style="flex: 1;">
+                                    <span>📱</span> QR Code
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-header">
+            <span class="notification-icon">🎉</span>
+            <h3 class="notification-title">Traitement terminé !</h3>
+        </div>
+        <p class="notification-message">
+            La visite 3D de "Bureau moderne - La Défense" est maintenant disponible.
+        </p>
+        <div class="notification-actions">
+            <button class="btn btn-secondary" onclick="hideNotification()">
+                Plus tard
+            </button>
+            <button class="btn btn-primary" onclick="viewFromNotification()">
+                Voir maintenant
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Toggle expand process card
+        function toggleExpand(card) {
+            if (event.target.closest('.action-btn') || event.target.closest('.btn') || event.target.closest('.error-btn')) {
+                return;
+            }
+            card.classList.toggle('expanded');
+        }
+
+        // Show notification
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                hideNotification();
+            }, 5000);
+        }
+
+        // Hide notification
+        function hideNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.remove('show');
+        }
+
+        // Action handlers
+        function pauseUpload(event) {
+            event.stopPropagation();
+            alert('Upload mis en pause');
+        }
+
+        function pauseAll() {
+            alert('Tous les traitements ont été mis en pause');
+        }
+
+        function retryProcess(event) {
+            event.stopPropagation();
+            alert('Nouveau traitement lancé...');
+        }
+
+        function uploadNew(event) {
+            event.stopPropagation();
+            alert('Interface d\'upload ouverte');
+        }
+
+        function viewTour(event) {
+            event.stopPropagation();
+            alert('Ouverture de la visite 3D...');
+        }
+
+        function shareLink(event) {
+            event.stopPropagation();
+            alert('Lien copié dans le presse-papier !');
+        }
+
+        function downloadQR(event) {
+            event.stopPropagation();
+            alert('Téléchargement du QR code...');
+        }
+
+        function viewFromNotification() {
+            hideNotification();
+            alert('Ouverture de la visite 3D...');
+        }
+
+        // Simulate progress updates
+        let uploadProgress = 45;
+        let processingProgress = 72;
+
+        setInterval(() => {
+            // Update upload progress
+            if (uploadProgress < 100) {
+                uploadProgress += Math.random() * 5;
+                uploadProgress = Math.min(uploadProgress, 100);
+                
+                const uploadBar = document.querySelector('.process-card.processing .progress-fill');
+                if (uploadBar && !uploadBar.classList.contains('warning')) {
+                    uploadBar.style.width = uploadProgress + '%';
+                    const percentText = uploadBar.closest('.progress-section').querySelector('.progress-header span:last-child');
+                    percentText.textContent = Math.floor(uploadProgress) + '%';
+                    
+                    const sizeText = uploadBar.closest('.progress-section').querySelector('.progress-info span:first-child');
+                    const uploadedMB = Math.floor(487 * uploadProgress / 100);
+                    sizeText.textContent = `${uploadedMB} MB / 487 MB`;
+                }
+            }
+
+            // Update processing progress
+            if (processingProgress < 100) {
+                processingProgress += Math.random() * 2;
+                processingProgress = Math.min(processingProgress, 100);
+                
+                const processingBars = document.querySelectorAll('.progress-fill.warning');
+                processingBars.forEach(bar => {
+                    bar.style.width = processingProgress + '%';
+                    const percentText = bar.closest('.progress-section').querySelector('.progress-header span:last-child');
+                    percentText.textContent = Math.floor(processingProgress) + '%';
+                });
+
+                // Show notification when complete
+                if (processingProgress >= 100 && !document.getElementById('notification').classList.contains('show')) {
+                    setTimeout(showNotification, 1000);
+                }
+            }
+        }, 2000);
+
+        // Simulate real-time updates
+        setTimeout(() => {
+            // Update queue position
+            const queuedCard = document.querySelector('.process-card.queued .process-meta span:last-child');
+            if (queuedCard) {
+                queuedCard.textContent = 'Position: #2';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

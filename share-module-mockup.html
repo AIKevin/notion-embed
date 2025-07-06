@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImmoScan 3D - Module Partage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        /* Property Card */
+        .property-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .property-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .property-info {
+            flex: 1;
+        }
+
+        .property-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .property-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .property-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* Share Section */
+        .share-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .share-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 16px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--gray-900);
+            background: var(--gray-50);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Link Generation */
+        .link-section {
+            padding: 24px;
+        }
+
+        .link-display {
+            background: var(--gray-50);
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .link-icon {
+            font-size: 24px;
+            color: var(--gray-400);
+        }
+
+        .link-text {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: var(--gray-700);
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        /* Customization Options */
+        .customize-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .customize-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--gray-700);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .input-hint {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--gray-300);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        /* QR Code Section */
+        .qr-section {
+            padding: 24px;
+            display: flex;
+            gap: 32px;
+        }
+
+        .qr-preview {
+            flex: 1;
+            text-align: center;
+        }
+
+        .qr-container {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 24px;
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: var(--gray-900);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .qr-logo {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .qr-options {
+            flex: 1;
+        }
+
+        .option-group {
+            margin-bottom: 20px;
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .format-btn {
+            padding: 8px;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .format-btn:hover {
+            border-color: var(--gray-400);
+        }
+
+        .format-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .download-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+        }
+
+        /* Analytics Section */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .stat-change {
+            font-size: 13px;
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .stat-change.negative {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Links Table */
+        .links-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--gray-600);
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        .link-channel {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .channel-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gray-100);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .link-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-expired {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .link-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px;
+            background: none;
+            border: none;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-top: 24px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .chart-area {
+            height: 300px;
+            position: relative;
+            background: var(--gray-50);
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+            gap: 10px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: var(--primary);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .chart-bar:hover {
+            background: var(--primary-dark);
+            transform: translateY(-4px);
+        }
+
+        .chart-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: var(--gray-900);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .chart-bar:hover .chart-tooltip {
+            opacity: 1;
+        }
+
+        /* Success Modal */
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .success-modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .success-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .success-modal.show .success-content {
+            transform: scale(1);
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 24px;
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .success-message {
+            color: var(--gray-600);
+            margin-bottom: 24px;
+        }
+
+        /* Meta Tags Preview */
+        .preview-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .preview-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .preview-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preview-tab {
+            padding: 6px 12px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .social-preview {
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 200px;
+            background: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-500);
+        }
+
+        .preview-content {
+            padding: 16px;
+        }
+
+        .preview-site {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+        }
+
+        .preview-headline {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .preview-description {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .qr-section {
+                flex-direction: column;
+            }
+            
+            .format-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">🏠</div>
+                    <span>ImmoScan 3D</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="header-title">Partage & Distribution</h1>
+            </header>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Property Card -->
+                <div class="property-card">
+                    <div class="property-header">
+                        <div class="property-info">
+                            <h2 class="property-title">Appartement 3 pièces - Voltaire</h2>
+                            <div class="property-meta">
+                                <span>📍 Paris 11ème</span>
+                                <span>📐 75 m²</span>
+                                <span>💰 450 000 €</span>
+                            </div>
+                        </div>
+                        <div class="property-status">
+                            <span>✅</span>
+                            <span>Visite 3D active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Share Tabs -->
+                <div class="share-section">
+                    <div class="share-tabs">
+                        <button class="tab-btn active" onclick="showTab('links')">
+                            🔗 Liens de partage
+                        </button>
+                        <button class="tab-btn" onclick="showTab('qr')">
+                            📱 QR Code
+                        </button>
+                        <button class="tab-btn" onclick="showTab('analytics')">
+                            📊 Analytics
+                        </button>
+                    </div>
+
+                    <!-- Links Tab -->
+                    <div class="tab-content active" id="links-tab">
+                        <div class="link-section">
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">
+                                Lien principal de partage
+                            </h3>
+                            
+                            <div class="link-display">
+                                <span class="link-icon">🔗</span>
+                                <span class="link-text" id="mainLink">https://immoscan.fr/v/paris-11-voltaire-x7k9</span>
+                                <button class="copy-btn" onclick="copyLink('mainLink')">
+                                    <span>📋</span>
+                                    <span>Copier</span>
+                                </button>
+                            </div>
+
+                            <div class="customize-section">
+                                <h4 class="customize-title">Personnaliser l'URL</h4>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">URL personnalisée</label>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="color: var(--gray-500);">immoscan.fr/v/</span>
+                                        <input type="text" class="form-input" style="flex: 1;" 
+                                               placeholder="mon-appartement-paris" 
+                                               value="appartement-3p-voltaire">
+                                    </div>
+                                    <p class="input-hint">Utilisez des lettres, chiffres et tirets uniquement</p>
+                                </div>
+
+                                <div class="toggle-group">
+                                    <div class="toggle-item">
+                                        <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        <label>Tracking analytics</label>
+                                    </div>
+                                    <div class="toggle-item">
+                                        <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                                        <label>Expiration automatique</label>
+                                    </div>
+                                    <div class="toggle-item">
+                                        <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                                        <label>Masquer le prix</label>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary" onclick="saveCustomUrl()">
+                                    Enregistrer l'URL personnalisée
+                                </button>
+                            </div>
+
+                            <div class="preview-section">
+                                <h4 class="preview-title">Aperçu du partage</h4>
+                                
+                                <div class="preview-tabs">
+                                    <button class="preview-tab active" onclick="showPreview('facebook')">Facebook</button>
+                                    <button class="preview-tab" onclick="showPreview('twitter')">Twitter</button>
+                                    <button class="preview-tab" onclick="showPreview('whatsapp')">WhatsApp</button>
+                                    <button class="preview-tab" onclick="showPreview('email')">Email</button>
+                                </div>
+
+                                <div class="social-preview">
+                                    <div class="preview-image">
+                                        [Photo principale du bien]
+                                    </div>
+                                    <div class="preview-content">
+                                        <div class="preview-site">immoscan.fr</div>
+                                        <div class="preview-headline">Appartement 3 pièces lumineux - Paris 11</div>
+                                        <div class="preview-description">
+                                            Magnifique appartement de 75m² avec 2 chambres, proche métro Voltaire. 
+                                            Visitez en 3D comme si vous y étiez !
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Tab -->
+                    <div class="tab-content" id="qr-tab">
+                        <div class="qr-section">
+                            <div class="qr-preview">
+                                <div class="qr-container">
+                                    <div class="qr-code">
+                                        <div class="qr-logo">🏠</div>
+                                        [QR Code Pattern]
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" onclick="downloadQR()">
+                                    <span>⬇️</span>
+                                    Télécharger le QR Code
+                                </button>
+                            </div>
+
+                            <div class="qr-options">
+                                <div class="option-group">
+                                    <label class="form-label">Format de téléchargement</label>
+                                    <div class="format-grid">
+                                        <button class="format-btn active" onclick="selectFormat(this, 'png')">PNG</button>
+                                        <button class="format-btn" onclick="selectFormat(this, 'svg')">SVG</button>
+                                        <button class="format-btn" onclick="selectFormat(this, 'pdf')">PDF</button>
+                                    </div>
+                                </div>
+
+                                <div class="option-group">
+                                    <label class="form-label">Taille (pixels)</label>
+                                    <div class="format-grid">
+                                        <button class="format-btn" onclick="selectSize(this, '512')">512px</button>
+                                        <button class="format-btn active" onclick="selectSize(this, '1024')">1024px</button>
+                                        <button class="format-btn" onclick="selectSize(this, '2048')">2048px</button>
+                                    </div>
+                                </div>
+
+                                <div class="toggle-group">
+                                    <div class="toggle-item">
+                                        <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        <label>Inclure le logo de l'agence</label>
+                                    </div>
+                                    <div class="toggle-item">
+                                        <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                                        <label>Ajouter l'adresse du bien</label>
+                                    </div>
+                                </div>
+
+                                <div class="download-actions">
+                                    <button class="btn btn-secondary" onclick="printQR()">
+                                        <span>🖨️</span>
+                                        Imprimer
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="shareQR()">
+                                        <span>📤</span>
+                                        Partager
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Tab -->
+                    <div class="tab-content" id="analytics-tab">
+                        <div class="link-section">
+                            <div class="analytics-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value">456</div>
+                                    <div class="stat-label">Vues totales</div>
+                                    <div class="stat-change positive">
+                                        <span>↑</span>
+                                        <span>+23%</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">23</div>
+                                    <div class="stat-label">Leads générés</div>
+                                    <div class="stat-change positive">
+                                        <span>↑</span>
+                                        <span>+15%</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">5.0%</div>
+                                    <div class="stat-label">Taux conversion</div>
+                                    <div class="stat-change negative">
+                                        <span>↓</span>
+                                        <span>-0.5%</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">12</div>
+                                    <div class="stat-label">Partages</div>
+                                    <div class="stat-change positive">
+                                        <span>↑</span>
+                                        <span>+4</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="links-table">
+                                <div class="table-header">
+                                    <h3 class="table-title">Liens actifs</h3>
+                                    <button class="filter-btn">
+                                        <span>🔽</span>
+                                        <span>Filtrer</span>
+                                    </button>
+                                </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Canal</th>
+                                            <th>Vues</th>
+                                            <th>Leads</th>
+                                            <th>Créé le</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="link-channel">
+                                                    <div class="channel-icon">📱</div>
+                                                    <span>WhatsApp - Mme Martin</span>
+                                                </div>
+                                            </td>
+                                            <td>45</td>
+                                            <td>3</td>
+                                            <td>Il y a 2 jours</td>
+                                            <td>
+                                                <span class="link-status status-active">
+                                                    <span>●</span>
+                                                    Actif
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="link-actions">
+                                                    <button class="action-btn" title="Statistiques">📊</button>
+                                                    <button class="action-btn" title="Copier">📋</button>
+                                                    <button class="action-btn" title="Désactiver">⏸️</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="link-channel">
+                                                    <div class="channel-icon">📧</div>
+                                                    <span>Email - Newsletter</span>
+                                                </div>
+                                            </td>
+                                            <td>123</td>
+                                            <td>8</td>
+                                            <td>Il y a 5 jours</td>
+                                            <td>
+                                                <span class="link-status status-active">
+                                                    <span>●</span>
+                                                    Actif
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="link-actions">
+                                                    <button class="action-btn" title="Statistiques">📊</button>
+                                                    <button class="action-btn" title="Copier">📋</button>
+                                                    <button class="action-btn" title="Désactiver">⏸️</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="link-channel">
+                                                    <div class="channel-icon">🌐</div>
+                                                    <span>Site agence</span>
+                                                </div>
+                                            </td>
+                                            <td>234</td>
+                                            <td>12</td>
+                                            <td>Il y a 15 jours</td>
+                                            <td>
+                                                <span class="link-status status-active">
+                                                    <span>●</span>
+                                                    Actif
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="link-actions">
+                                                    <button class="action-btn" title="Statistiques">📊</button>
+                                                    <button class="action-btn" title="Copier">📋</button>
+                                                    <button class="action-btn" title="Régénérer">🔄</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="link-channel">
+                                                    <div class="channel-icon">📘</div>
+                                                    <span>Facebook - Post sponsorisé</span>
+                                                </div>
+                                            </td>
+                                            <td>18</td>
+                                            <td>0</td>
+                                            <td>Il y a 30 jours</td>
+                                            <td>
+                                                <span class="link-status status-expired">
+                                                    <span>●</span>
+                                                    Expiré
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="link-actions">
+                                                    <button class="action-btn" title="Statistiques">📊</button>
+                                                    <button class="action-btn" title="Réactiver">▶️</button>
+                                                    <button class="action-btn" title="Supprimer">🗑️</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h3 class="chart-title">Performance par canal (7 derniers jours)</h3>
+                                    <div class="chart-legend">
+                                        <div class="legend-item">
+                                            <div class="legend-dot" style="background: var(--primary);"></div>
+                                            <span>Vues</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="legend-dot" style="background: var(--success);"></div>
+                                            <span>Leads</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="chart-area">
+                                    <div class="chart-bar" style="height: 60%;">
+                                        <div class="chart-tooltip">WhatsApp: 123 vues</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 80%; background: var(--success);">
+                                        <div class="chart-tooltip">WhatsApp: 8 leads</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 45%;">
+                                        <div class="chart-tooltip">Email: 89 vues</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 30%; background: var(--success);">
+                                        <div class="chart-tooltip">Email: 5 leads</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 90%;">
+                                        <div class="chart-tooltip">Direct: 156 vues</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 50%; background: var(--success);">
+                                        <div class="chart-tooltip">Direct: 6 leads</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 30%;">
+                                        <div class="chart-tooltip">Facebook: 45 vues</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 15%; background: var(--success);">
+                                        <div class="chart-tooltip">Facebook: 2 leads</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 40%;">
+                                        <div class="chart-tooltip">QR Code: 67 vues</div>
+                                    </div>
+                                    <div class="chart-bar" style="height: 20%; background: var(--success);">
+                                        <div class="chart-tooltip">QR Code: 2 leads</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">✅</div>
+            <h3 class="success-title">URL personnalisée créée !</h3>
+            <p class="success-message">
+                Votre nouveau lien est prêt à être partagé.<br>
+                <strong>immoscan.fr/v/appartement-3p-voltaire</strong>
+            </p>
+            <button class="btn btn-primary" onclick="closeSuccessModal()">
+                Parfait !
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Copy link functionality
+        function copyLink(linkId) {
+            const linkText = document.getElementById(linkId).textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                const btn = event.target.closest('.copy-btn');
+                btn.classList.add('copied');
+                btn.innerHTML = '<span>✅</span><span>Copié !</span>';
+                
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '<span>📋</span><span>Copier</span>';
+                }, 2000);
+            });
+        }
+
+        // Toggle switch
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // Format selection
+        function selectFormat(btn, format) {
+            document.querySelectorAll('.format-grid .format-btn').forEach(b => {
+                if (b.parentElement === btn.parentElement) {
+                    b.classList.remove('active');
+                }
+            });
+            btn.classList.add('active');
+        }
+
+        // Size selection
+        function selectSize(btn, size) {
+            selectFormat(btn, size);
+        }
+
+        // Save custom URL
+        function saveCustomUrl() {
+            document.getElementById('successModal').classList.add('show');
+        }
+
+        // Close success modal
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('show');
+        }
+
+        // Preview switching
+        function showPreview(platform) {
+            document.querySelectorAll('.preview-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // In real app, would update preview content
+            console.log('Showing preview for:', platform);
+        }
+
+        // QR Code actions
+        function downloadQR() {
+            alert('Téléchargement du QR Code...');
+        }
+
+        function printQR() {
+            alert('Ouverture de la fenêtre d\'impression...');
+        }
+
+        function shareQR() {
+            alert('Partage du QR Code...');
+        }
+
+        // Animate chart bars on load
+        window.addEventListener('load', () => {
+            const bars = document.querySelectorAll('.chart-bar');
+            bars.forEach((bar, index) => {
+                const height = bar.style.height;
+                bar.style.height = '0';
+                setTimeout(() => {
+                    bar.style.transition = 'height 0.5s ease-out';
+                    bar.style.height = height;
+                }, index * 100);
+            });
+        });
+
+        // Simulate real-time stats update
+        setInterval(() => {
+            const statValues = document.querySelectorAll('.stat-value');
+            statValues.forEach(stat => {
+                if (Math.random() > 0.7) {
+                    const currentValue = parseInt(stat.textContent);
+                    if (!isNaN(currentValue)) {
+                        const change = Math.floor(Math.random() * 5) - 2;
+                        stat.textContent = currentValue + change;
+                    }
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
