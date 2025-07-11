@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KeyMate - Gestion des Biens Immobiliers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Palette KeyMate */
+            --primary: #3C4553;        /* Bleu ardoise profond */
+            --background: #FAF5EF;     /* Beige clair */
+            --accent: #FFC107;         /* Jaune doré */
+            --text-secondary: #6B7280; /* Gris doux */
+            
+            /* Couleurs supplémentaires */
+            --white: #FFFFFF;
+            --gray-100: #F8F8F8;
+            --gray-200: #E8E8E8;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            
+            /* États */
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --info: #3B82F6;
+            
+            /* Ombres */
+            --shadow-sm: 0 1px 2px 0 rgba(60, 69, 83, 0.05);
+            --shadow: 0 1px 3px 0 rgba(60, 69, 83, 0.1), 0 1px 2px 0 rgba(60, 69, 83, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(60, 69, 83, 0.1), 0 2px 4px -1px rgba(60, 69, 83, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(60, 69, 83, 0.1), 0 4px 6px -2px rgba(60, 69, 83, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(60, 69, 83, 0.1), 0 10px 10px -5px rgba(60, 69, 83, 0.04);
+            
+            /* Espacements */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+            
+            /* Border radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-full: 9999px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--background);
+            color: var(--primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Top navigation bar */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--primary);
+            box-shadow: var(--shadow-md);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-xl);
+        }
+
+        .top-nav-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            color: var(--white);
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .top-nav-brand svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--accent);
+        }
+
+        .nav-right-section {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        /* Network Status */
+        .network-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            color: var(--white);
+        }
+
+        .network-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signal-strength {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+        }
+
+        .signal-bar {
+            width: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 1px;
+            transition: all 0.3s;
+        }
+
+        .signal-bar:nth-child(1) { height: 6px; }
+        .signal-bar:nth-child(2) { height: 10px; }
+        .signal-bar:nth-child(3) { height: 14px; }
+        .signal-bar:nth-child(4) { height: 18px; }
+
+        .signal-bar.active {
+            background: var(--success);
+            box-shadow: 0 0 4px var(--success);
+        }
+
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-bell svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--white);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--error);
+            color: var(--white);
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 5px;
+            border-radius: var(--radius-full);
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .top-nav-menu {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        .top-nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .top-nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .top-nav-item.active {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .power-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .power-button::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 6px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .power-button:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--error);
+            transform: scale(1.1);
+        }
+
+        .power-button:hover::before {
+            background: var(--error);
+            box-shadow: 0 0 8px var(--error);
+            animation: none;
+        }
+
+        /* Layout principal */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            margin-top: 60px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--white);
+            box-shadow: 2px 0 8px rgba(60, 69, 83, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: var(--spacing-lg);
+        }
+
+        .nav-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .nav-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            margin-bottom: var(--spacing-xs);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: var(--background);
+            color: var(--primary);
+            transform: translateX(2px);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: var(--white);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+        }
+
+        /* Processing Status Widget */
+        .processing-widget {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            box-shadow: var(--shadow);
+        }
+
+        .processing-widget-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .processing-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-md);
+        }
+
+        .processing-stat {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .processing-stat-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .processing-stat-icon.waiting {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        .processing-stat-icon.active {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--accent);
+        }
+
+        .processing-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .processing-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            padding: var(--spacing-lg) var(--spacing-xl);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 60px;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-separator {
+            color: var(--gray-400);
+        }
+
+        .breadcrumb-current {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .header-search {
+            position: relative;
+        }
+
+        .search-input {
+            padding: var(--spacing-sm) var(--spacing-md);
+            padding-left: 40px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            width: 300px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: var(--background);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--white);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            padding: var(--spacing-xl);
+        }
+
+        /* Page header */
+        .page-header {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        /* View tabs */
+        .view-tabs {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .view-tab {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .view-tab:hover {
+            color: var(--primary);
+        }
+
+        .view-tab.active {
+            color: var(--primary);
+        }
+
+        .view-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .view-tab-badge {
+            background: var(--gray-200);
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            margin-left: var(--spacing-sm);
+        }
+
+        .view-tab.active .view-tab-badge {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-icon.primary {
+            background: rgba(60, 69, 83, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-icon.accent {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--accent);
+        }
+
+        .stat-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stat-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: var(--spacing-sm);
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--error);
+        }
+
+        /* Actions bar */
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        .filters-group {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-dropdown {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-size: 14;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 140px;
+        }
+
+        .filter-dropdown:hover {
+            border-color: var(--gray-300);
+        }
+
+        .filter-dropdown:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 2px;
+        }
+
+        .view-toggle button {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+
+        .view-toggle button.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: #E6AD00;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--gray-200);
+        }
+
+        .btn-secondary:hover {
+            background: var(--background);
+            border-color: var(--gray-300);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--primary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--background);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Property grid */
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .property-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .property-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--accent);
+        }
+
+        .property-card.processing {
+            border-color: var(--warning);
+        }
+
+        /* Processing Indicator on Card */
+        .processing-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gray-200);
+            overflow: hidden;
+        }
+
+        .processing-progress {
+            height: 100%;
+            background: var(--accent);
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .property-image {
+            position: relative;
+            height: 220px;
+            background: linear-gradient(135deg, var(--gray-200), var(--gray-300));
+            overflow: hidden;
+        }
+
+        .property-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .property-badges {
+            position: absolute;
+            top: var(--spacing-md);
+            left: var(--spacing-md);
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .badge {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+
+        .badge-draft {
+            background: rgba(107, 114, 128, 0.9);
+            color: white;
+        }
+
+        .badge-new {
+            background: rgba(255, 193, 7, 0.9);
+            color: var(--primary);
+        }
+
+        .scan-status {
+            position: absolute;
+            bottom: var(--spacing-md);
+            right: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            background: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .scan-status.completed {
+            color: var(--success);
+        }
+
+        .scan-status.processing {
+            color: var(--warning);
+        }
+
+        .scan-status.none {
+            color: var(--text-secondary);
+        }
+
+        .property-content {
+            padding: var(--spacing-lg);
+        }
+
+        .property-header {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .property-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .property-address {
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .property-details {
+            display: flex;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-md) 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .property-detail {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 14px;
+            color: var(--gray-700);
+        }
+
+        .property-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .property-metrics {
+            display: flex;
+            justify-content: space-between;
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Property sharing actions */
+        .property-share-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .btn-share-action {
+            flex: 1;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border: 1px solid var(--gray-200);
+            background: var(--white);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            color: var(--text-secondary);
+        }
+
+        .btn-share-action:hover {
+            background: var(--background);
+            border-color: var(--accent);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-share-action.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-share-action.primary:hover {
+            background: #E6AD00;
+        }
+
+        /* Processing Panel */
+        .processing-panel {
+            position: fixed;
+            right: -400px;
+            top: 60px;
+            width: 400px;
+            height: calc(100vh - 60px);
+            background: var(--white);
+            box-shadow: -2px 0 10px rgba(60, 69, 83, 0.1);
+            transition: right 0.3s ease;
+            z-index: 1500;
+            overflow-y: auto;
+        }
+
+        .processing-panel.active {
+            right: 0;
+        }
+
+        .panel-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .panel-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--background);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .panel-content {
+            padding: var(--spacing-lg);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: var(--spacing-xl);
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gray-200);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: var(--spacing-lg);
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -28px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 2px solid var(--gray-300);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .timeline-dot.completed {
+            background: var(--success);
+            border-color: var(--success);
+            color: var(--white);
+        }
+
+        .timeline-dot.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        .timeline-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .timeline-content p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Upload area */
+        .upload-container {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            box-shadow: var(--shadow);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--gray-300);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            text-align: center;
+            transition: all 0.3s;
+            background: var(--background);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: rgba(255, 193, 7, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            color: var(--gray-400);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .upload-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .upload-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .file-list {
+            margin-top: var(--spacing-xl);
+        }
+
+        .file-item {
+            background: var(--background);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .file-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .file-progress {
+            width: 120px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        /* Forms */
+        .form-container {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            box-shadow: var(--shadow);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-section {
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--background);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .required {
+            color: var(--error);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            transition: all 0.2s;
+            background: var(--background);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--white);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-help {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: var(--spacing-xs);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--gray-300);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-2xl) var(--spacing-xl);
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            color: var(--gray-300);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .empty-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Share Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .share-modal {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--background);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: var(--gray-200);
+        }
+
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--background);
+        }
+
+        .modal-tab {
+            flex: 1;
+            padding: var(--spacing-md);
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .modal-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--accent);
+        }
+
+        .modal-content {
+            padding: var(--spacing-xl);
+            overflow-y: auto;
+        }
+
+        .share-option {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .share-option-label {
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--primary);
+        }
+
+        .share-url-container {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .share-url-input {
+            flex: 1;
+            padding: var(--spacing-md);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-family: monospace;
+            font-size: 14px;
+            background: var(--background);
+        }
+
+        .btn-copy {
+            padding: var(--spacing-md);
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-copy:hover {
+            background: #E6AD00;
+        }
+
+        .qr-preview {
+            text-align: center;
+            padding: var(--spacing-xl);
+            background: var(--background);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto var(--spacing-md);
+            background: var(--white);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+        }
+
+        .embed-code {
+            background: var(--gray-900);
+            color: var(--gray-100);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-family: monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        /* Option Cards */
+        .option-card {
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .option-card:hover .btn {
+            transform: scale(1.05);
+        }
+
+        /* Notifications */
+        .notification-container {
+            position: fixed;
+            bottom: var(--spacing-lg);
+            right: var(--spacing-lg);
+            z-index: 2500;
+        }
+
+        .notification {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-xl);
+            margin-bottom: var(--spacing-md);
+            min-width: 320px;
+            max-width: 400px;
+            transform: translateX(450px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .notification-icon {
+            font-size: 24px;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .notification-message {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            justify-content: flex-end;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .property-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+            
+            .processing-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-nav {
+                padding: 0 var(--spacing-md);
+            }
+            
+            .top-nav-brand span {
+                display: none;
+            }
+            
+            .top-nav-item span:not(:first-child) {
+                display: none;
+            }
+            
+            .network-status span:not(.signal-strength) {
+                display: none;
+            }
+            
+            .power-button {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                align-items: stretch;
+            }
+            
+            .header-search {
+                width: 100%;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .property-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-group {
+                width: 100%;
+                overflow-x: auto;
+            }
+            
+            .share-modal {
+                width: 95%;
+                margin: var(--spacing-md);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <a href="#" class="top-nav-brand">
+            <svg viewBox="0 0 296 427" xmlns="http://www.w3.org/2000/svg">
+                <g fill="currentColor" transform="translate(0,427) scale(0.1,-0.1)">
+                    <path d="M1391 3921 c-32 -20 -1064 -1059 -1079 -1086 -15 -27 -17 -93 -20 -645 -2 -431 0 -626 8 -653 7 -25 22 -45 43 -57 30 -19 53 -20 363 -20 407 0 377 -11 382 143 4 99 3 105 -21 133 l-25 29 -208 3 c-128 2 -213 7 -221 14 -10 8 -13 107 -13 461 l0 451 417 418 c230 230 425 418 433 418 8 0 203 -188 433 -418 l417 -418 0 -442 c0 -287 -4 -450 -10 -463 -10 -18 -23 -19 -225 -19 l-214 0 -20 -26 c-18 -23 -21 -41 -21 -135 0 -162 -33 -149 378 -149 319 0 339 1 370 20 18 11 37 32 42 46 7 16 10 262 10 651 -1 593 -2 627 -20 661 -10 21 -114 131 -232 247 -117 115 -357 353 -533 527 l-321 318 -49 0 c-28 0 -56 -4 -64 -9z"/>
+                    <path d="M1425 2756 c-11 -7 -80 -46 -153 -86 l-132 -72 2 -181 3 -181 110 -62 c61 -35 131 -72 156 -84 l46 -22 74 37 c41 21 109 58 152 83 l77 46 0 182 0 182 -153 86 c-85 47 -155 86 -158 85 -2 0 -13 -6 -24 -13z"/>
+                    <path d="M1364 1891 c-17 -11 -36 -34 -43 -52 -8 -23 -11 -254 -11 -796 0 -839 -2 -810 59 -846 39 -23 157 -23 189 -1 31 22 52 66 52 112 0 22 6 44 13 50 6 6 68 12 135 14 122 3 124 3 149 32 24 28 25 34 21 133 -4 135 -12 143 -133 143 -105 0 -115 8 -115 94 0 39 5 67 13 74 6 5 52 12 100 14 126 6 132 14 132 159 0 148 -1 149 -169 149 -82 0 -126 4 -134 12 -9 9 -12 95 -12 327 0 298 -1 318 -20 349 -25 40 -54 52 -133 52 -43 0 -71 -6 -93 -19z"/>
+                </g>
+            </svg>
+            <span>KeyMate</span>
+        </a>
+        
+        <div class="nav-right-section">
+            <!-- Network Status -->
+            <div class="network-status">
+                <span class="network-icon">📡</span>
+                <span>WiFi</span>
+                <div class="signal-strength">
+                    <div class="signal-bar active"></div>
+                    <div class="signal-bar active"></div>
+                    <div class="signal-bar active"></div>
+                    <div class="signal-bar"></div>
+                </div>
+            </div>
+            
+            <!-- Notification Bell -->
+            <div class="notification-bell" onclick="toggleNotifications()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="notification-badge">3</span>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="top-nav-menu">
+                <a href="#" class="top-nav-item active" onclick="navigateToSection('properties')">
+                    <span>🏠</span>
+                    <span>Mes Biens</span>
+                </a>
+                <a href="#" class="top-nav-item" onclick="navigateToSection('analytics')">
+                    <span>📊</span>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="top-nav-item" onclick="navigateToSection('profile')">
+                    <span>👤</span>
+                    <span>Profil</span>
+                </a>
+            </div>
+            
+            <!-- Power Button -->
+            <button class="power-button" onclick="showModal('logout')" title="Se déconnecter">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="breadcrumb">
+                    <span>Accueil</span>
+                    <span class="breadcrumb-separator">›</span>
+                    <span class="breadcrumb-current">Gestion des biens</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <!-- Processing Status Widget -->
+                <div class="processing-widget">
+                    <h3 class="processing-widget-title">
+                        <span>⚡</span>
+                        Traitements en cours
+                    </h3>
+                    <div class="processing-stats">
+                        <div class="processing-stat">
+                            <div class="processing-stat-icon waiting">⏳</div>
+                            <div>
+                                <div class="processing-stat-value">3</div>
+                                <div class="processing-stat-label">En attente</div>
+                            </div>
+                        </div>
+                        <div class="processing-stat">
+                            <div class="processing-stat-icon active">
+                                <span class="spinner"></span>
+                            </div>
+                            <div>
+                                <div class="processing-stat-value">1</div>
+                                <div class="processing-stat-label">En cours</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Navigation</div>
+                    <a class="nav-item active" onclick="showSection('properties')">
+                        <span class="nav-icon">🏘️</span>
+                        <span>Tous mes biens</span>
+                        <span class="nav-badge">23</span>
+                    </a>
+                    <a class="nav-item" onclick="showSection('processing')">
+                        <span class="nav-icon">⚡</span>
+                        <span>En traitement</span>
+                        <span class="nav-badge">4</span>
+                    </a>
+                    <a class="nav-item" onclick="showSection('archived')">
+                        <span class="nav-icon">📦</span>
+                        <span>Archivés</span>
+                        <span class="nav-badge">12</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Actions</div>
+                    <a class="nav-item" onclick="showSection('create')">
+                        <span class="nav-icon">➕</span>
+                        <span>Nouveau bien</span>
+                    </a>
+                    <a class="nav-item" onclick="startNewScan()">
+                        <span class="nav-icon">📷</span>
+                        <span>Scanner 3D</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="header-search">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" placeholder="Rechercher un bien...">
+                        </div>
+                    </div>
+                    
+                    <div class="header-right">
+                        <button class="btn btn-primary" onclick="showSection('create')">
+                            <span>➕</span>
+                            Nouveau bien
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Properties Section -->
+                <div class="section active animate-fadeInUp" id="properties-section">
+                    <div class="page-header">
+                        <h1 class="page-title">Gestion des biens</h1>
+                        <p class="page-subtitle">Gérez votre portefeuille immobilier et vos scans 3D</p>
+                    </div>
+                    
+                    <!-- View Tabs -->
+                    <div class="view-tabs">
+                        <button class="view-tab active" onclick="filterView('all')">
+                            Tous mes biens
+                            <span class="view-tab-badge">23</span>
+                        </button>
+                        <button class="view-tab" onclick="filterView('processing')">
+                            En traitement
+                            <span class="view-tab-badge">4</span>
+                        </button>
+                        <button class="view-tab" onclick="filterView('archived')">
+                            Archivés
+                            <span class="view-tab-badge">12</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Actions bar -->
+                    <div class="actions-bar">
+                        <div class="filters-group">
+                            <select class="filter-dropdown">
+                                <option>Type de bien</option>
+                                <option>Appartement</option>
+                                <option>Maison</option>
+                                <option>Bureau</option>
+                                <option>Local commercial</option>
+                            </select>
+                            
+                            <select class="filter-dropdown">
+                                <option>Statut scan</option>
+                                <option>Scan complété</option>
+                                <option>En cours</option>
+                                <option>Sans scan</option>
+                            </select>
+                            
+                            <select class="filter-dropdown">
+                                <option>Prix</option>
+                                <option>< 200k€</option>
+                                <option>200k€ - 500k€</option>
+                                <option>500k€ - 1M€</option>
+                                <option>> 1M€</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+                            <div class="view-toggle">
+                                <button class="active">Grille</button>
+                                <button>Liste</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Property Grid -->
+                    <div class="property-grid">
+                        <!-- Property Card 1 - Completed -->
+                        <div class="property-card" onclick="showSection('detail')">
+                            <div class="property-image">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-family='system-ui' font-size='20'%3EAppartement moderne%3C/text%3E%3C/svg%3E" alt="Appartement">
+                                <div class="property-badges">
+                                    <span class="badge badge-active">Actif</span>
+                                    <span class="badge badge-new">Nouveau</span>
+                                </div>
+                                <div class="scan-status completed">
+                                    <span>✅</span>
+                                    <span>Scan 3D</span>
+                                </div>
+                            </div>
+                            <div class="property-content">
+                                <div class="property-header">
+                                    <h3 class="property-title">Appartement T3 Centre-ville</h3>
+                                    <p class="property-address">
+                                        <span>📍</span>
+                                        12 rue de la République, 75001 Paris
+                                    </p>
+                                </div>
+                                <div class="property-details">
+                                    <span class="property-detail">
+                                        <span>🏠</span> 75 m²
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🛏️</span> 2 ch.
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🏛️</span> 3ème
+                                    </span>
+                                </div>
+                                <div class="property-price">450 000 €</div>
+                                <div class="property-metrics">
+                                    <div class="metric">
+                                        <div class="metric-value">234</div>
+                                        <div class="metric-label">Vues</div>
+                                    </div>
+                                    <div class="metric">
+                                        <div class="metric-value">8</div>
+                                        <div class="metric-label">Leads</div>
+                                    </div>
+                                    <div class="metric">
+                                        <div class="metric-value">3.4%</div>
+                                        <div class="metric-label">Conversion</div>
+                                    </div>
+                                </div>
+                                <div class="property-share-actions">
+                                    <button class="btn-share-action primary" onclick="event.stopPropagation(); openShareModal('property1')">
+                                        <span>🔗</span>
+                                        <span>Partager</span>
+                                    </button>
+                                    <button class="btn-share-action" onclick="event.stopPropagation(); generateQR('property1')">
+                                        <span>📱</span>
+                                        <span>QR</span>
+                                    </button>
+                                    <button class="btn-share-action" onclick="event.stopPropagation(); showEmbed('property1')">
+                                        <span>📋</span>
+                                        <span>Embed</span>
+                                    </button>
+                                    <button class="btn-share-action" onclick="event.stopPropagation(); viewStats('property1')">
+                                        <span>📊</span>
+                                        <span>Stats</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Property Card 2 - Processing -->
+                        <div class="property-card processing" onclick="event.stopPropagation(); openProcessingPanel('property2')">
+                            <div class="processing-indicator">
+                                <div class="processing-progress"></div>
+                            </div>
+                            <div class="property-image">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-family='system-ui' font-size='20'%3EVilla avec jardin%3C/text%3E%3C/svg%3E" alt="Villa">
+                                <div class="property-badges">
+                                    <span class="badge badge-active">Actif</span>
+                                </div>
+                                <div class="scan-status processing">
+                                    <span class="spinner"></span>
+                                    <span>En cours (45%)</span>
+                                </div>
+                            </div>
+                            <div class="property-content">
+                                <div class="property-header">
+                                    <h3 class="property-title">Villa moderne avec piscine</h3>
+                                    <p class="property-address">
+                                        <span>📍</span>
+                                        23 avenue des Fleurs, Neuilly-sur-Seine
+                                    </p>
+                                </div>
+                                <div class="property-details">
+                                    <span class="property-detail">
+                                        <span>🏠</span> 220 m²
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🛏️</span> 4 ch.
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🌳</span> 500 m²
+                                    </span>
+                                </div>
+                                <div class="property-price">1 250 000 €</div>
+                                <div style="background: var(--background); border-radius: var(--radius-md); padding: var(--spacing-md); margin-top: var(--spacing-md);">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                                        <span style="font-size: 13px; color: var(--text-secondary);">Traitement 3D</span>
+                                        <span style="font-size: 13px; font-weight: 600;">45%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 45%"></div>
+                                    </div>
+                                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: var(--spacing-sm);">
+                                        Étape 3/5 : Génération du maillage
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Property Card 3 - No scan -->
+                        <div class="property-card">
+                            <div class="property-image">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-family='system-ui' font-size='20'%3EStudio rénové%3C/text%3E%3C/svg%3E" alt="Studio">
+                                <div class="property-badges">
+                                    <span class="badge badge-draft">Brouillon</span>
+                                </div>
+                                <div class="scan-status none">
+                                    <span>📷</span>
+                                    <span>Pas de scan</span>
+                                </div>
+                            </div>
+                            <div class="property-content">
+                                <div class="property-header">
+                                    <h3 class="property-title">Studio rénové quartier Latin</h3>
+                                    <p class="property-address">
+                                        <span>📍</span>
+                                        8 rue Mouffetard, 75005 Paris
+                                    </p>
+                                </div>
+                                <div class="property-details">
+                                    <span class="property-detail">
+                                        <span>🏠</span> 28 m²
+                                    </span>
+                                    <span class="property-detail">
+                                        <span>🏛️</span> 3ème
+                                    </span>
+                                </div>
+                                <div class="property-price">285 000 €</div>
+                                <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-md);">
+                                    <button class="btn btn-secondary btn-icon" title="Modifier">
+                                        <span>✏️</span>
+                                    </button>
+                                    <button class="btn btn-primary" style="flex: 1;" onclick="showSection('upload')">
+                                        <span>📱</span>
+                                        Scanner 3D
+                                    </button>
+                                </div>
+                                <div class="property-share-actions">
+                                    <button class="btn-share-action" onclick="event.stopPropagation(); openShareModal('property3')" disabled style="opacity: 0.5;">
+                                        <span>🔗</span>
+                                        <span>Partager</span>
+                                    </button>
+                                    <button class="btn-share-action" onclick="event.stopPropagation(); generateQR('property3')" disabled style="opacity: 0.5;">
+                                        <span>📱</span>
+                                        <span>QR</span>
+                                    </button>
+                                    <button class="btn-share-action" onclick="event.stopPropagation(); showEmbed('property3')" disabled style="opacity: 0.5;">
+                                        <span>📋</span>
+                                        <span>Embed</span>
+                                    </button>
+                                    <button class="btn-share-action" onclick="event.stopPropagation(); viewStats('property3')">
+                                        <span>📊</span>
+                                        <span>Stats</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other sections (create, upload, detail) remain the same -->
+                <!-- Create/Edit Property Section -->
+                <div class="section animate-fadeInUp" id="create-section">
+                    <div class="page-header">
+                        <h1 class="page-title">Nouveau bien immobilier</h1>
+                        <p class="page-subtitle">Créez une nouvelle fiche bien pour commencer la numérisation 3D</p>
+                    </div>
+                    
+                    <div class="form-container">
+                        <form>
+                            <!-- Informations générales -->
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <span class="section-icon">📝</span>
+                                    Informations générales
+                                </h3>
+                                
+                                <div class="form-group full-width">
+                                    <label class="form-label">
+                                        Titre du bien <span class="required">*</span>
+                                    </label>
+                                    <input type="text" class="form-input" placeholder="Ex: Appartement T3 Centre-ville">
+                                    <div class="form-help">5 à 100 caractères</div>
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Type de bien <span class="required">*</span>
+                                        </label>
+                                        <select class="form-select">
+                                            <option>Sélectionner un type</option>
+                                            <option>Appartement</option>
+                                            <option>Maison</option>
+                                            <option>Bureau</option>
+                                            <option>Local commercial</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Prix (€)</label>
+                                        <input type="number" class="form-input" placeholder="450000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Localisation -->
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <span class="section-icon">📍</span>
+                                    Localisation
+                                </h3>
+                                
+                                <div class="form-group full-width">
+                                    <label class="form-label">
+                                        Adresse complète <span class="required">*</span>
+                                    </label>
+                                    <input type="text" class="form-input" placeholder="Numéro et nom de rue">
+                                    <div class="form-help">L'adresse sera géolocalisée automatiquement</div>
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Code postal <span class="required">*</span>
+                                        </label>
+                                        <input type="text" class="form-input" placeholder="75001">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Ville <span class="required">*</span>
+                                        </label>
+                                        <input type="text" class="form-input" placeholder="Paris">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Détails du bien -->
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <span class="section-icon">🏠</span>
+                                    Détails du bien
+                                </h3>
+                                
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Surface (m²)</label>
+                                        <input type="number" class="form-input" placeholder="75">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Nombre de pièces</label>
+                                        <input type="number" class="form-input" placeholder="3">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Chambres</label>
+                                        <input type="number" class="form-input" placeholder="2">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Salles de bain</label>
+                                        <input type="number" class="form-input" placeholder="1">
+                                    </div>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-textarea" placeholder="Décrivez le bien en détail..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
+                                <button type="button" class="btn btn-secondary" onclick="showSection('properties')">
+                                    Annuler
+                                </button>
+                                <button type="button" class="btn btn-ghost">
+                                    Sauvegarder comme brouillon
+                                </button>
+                                <button type="button" class="btn btn-primary">
+                                    Créer le bien
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Upload Scan Section -->
+                <div class="section animate-fadeInUp" id="upload-section">
+                    <div class="page-header">
+                        <h1 class="page-title">Capture 3D du bien</h1>
+                        <p class="page-subtitle">Studio rénové quartier Latin - Référence AG-2024-0042</p>
+                    </div>
+                    
+                    <div class="upload-container">
+                        <!-- Upload Options -->
+                        <div id="upload-options" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+                            <div class="option-card" onclick="startNewScan()" style="background: var(--white); border: 2px solid var(--gray-200); border-radius: var(--radius-lg); padding: var(--spacing-xl); text-align: center; cursor: pointer; transition: all 0.3s;">
+                                <div style="font-size: 64px; margin-bottom: var(--spacing-md); color: var(--accent);">📱</div>
+                                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--primary);">Scanner maintenant</h3>
+                                <p style="color: var(--text-secondary);">Lancer une nouvelle capture avec l'app mobile KeyMate</p>
+                                <button class="btn btn-primary" style="margin-top: var(--spacing-lg);">
+                                    Démarrer la capture
+                                </button>
+                            </div>
+                            
+                            <div class="option-card" onclick="showUploadArea()" style="background: var(--white); border: 2px solid var(--gray-200); border-radius: var(--radius-lg); padding: var(--spacing-xl); text-align: center; cursor: pointer; transition: all 0.3s;">
+                                <div style="font-size: 64px; margin-bottom: var(--spacing-md); color: var(--primary);">📁</div>
+                                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--primary);">J'ai déjà les fichiers</h3>
+                                <p style="color: var(--text-secondary);">Uploader des fichiers MP4 + BIN existants</p>
+                                <button class="btn btn-secondary" style="margin-top: var(--spacing-lg);">
+                                    Sélectionner les fichiers
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Upload Area (hidden by default) -->
+                        <div id="upload-area-container" style="display: none;">
+                            <button class="btn btn-ghost" onclick="showUploadOptions()" style="margin-bottom: var(--spacing-lg);">
+                                ← Retour aux options
+                            </button>
+                            
+                            <div class="upload-area" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                <div class="upload-icon">📁</div>
+                                <h3 class="upload-title">Glissez vos fichiers MP4 et BIN ici</h3>
+                                <p class="upload-subtitle">ou cliquez pour sélectionner</p>
+                                <button class="btn btn-primary">
+                                    Sélectionner les fichiers
+                                </button>
+                                <p style="margin-top: var(--spacing-lg); font-size: 13px; color: var(--text-secondary);">
+                                    Formats acceptés : MP4/MOV + BIN • Max 1GB pour la vidéo, 500MB pour le fichier de profondeur
+                                </p>
+                            </div>
+
+                            <div class="file-list">
+                                <div class="file-item">
+                                    <div class="file-icon">🎬</div>
+                                    <div class="file-info">
+                                        <div class="file-name">scan_studio_latin.mp4</div>
+                                        <div class="file-meta">487 MB • Vidéo HD</div>
+                                    </div>
+                                    <div class="file-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 65%"></div>
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">65%</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="file-item">
+                                    <div class="file-icon">📊</div>
+                                    <div class="file-info">
+                                        <div class="file-name">scan_studio_latin.bin</div>
+                                        <div class="file-meta">234 MB • Données de profondeur</div>
+                                    </div>
+                                    <div class="file-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 45%"></div>
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">45%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: var(--spacing-md); justify-content: space-between; margin-top: var(--spacing-xl);">
+                                <button type="button" class="btn btn-secondary" onclick="showSection('properties')">
+                                    ← Retour
+                                </button>
+                                <button type="button" class="btn btn-primary">
+                                    Lancer le traitement 3D
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Detail Section -->
+                <div class="section animate-fadeInUp" id="detail-section">
+                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1 class="page-title">Appartement T3 Centre-ville</h1>
+                            <p class="page-subtitle">Référence : AG-2024-0042 • Créé il y a 15 jours</p>
+                        </div>
+                        <div style="display: flex; gap: var(--spacing-md);">
+                            <button class="btn btn-secondary" onclick="showSection('properties')">
+                                ← Retour
+                            </button>
+                            <button class="btn btn-secondary">
+                                <span>✏️</span>
+                                Modifier
+                            </button>
+                            <button class="btn btn-primary">
+                                <span>👁️</span>
+                                Voir la visite 3D
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-xl);">
+                        <div>
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--spacing-xl); box-shadow: var(--shadow); margin-bottom: var(--spacing-lg);">
+                                <h3 style="font-size: 20px; margin-bottom: var(--spacing-lg);">Informations générales</h3>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+                                    <div>
+                                        <span style="color: var(--text-secondary); font-size: 14px;">Surface</span>
+                                        <p style="font-size: 20px; font-weight: 600;">75 m²</p>
+                                    </div>
+                                    <div>
+                                        <span style="color: var(--text-secondary); font-size: 14px;">Pièces</span>
+                                        <p style="font-size: 20px; font-weight: 600;">3 pièces</p>
+                                    </div>
+                                    <div>
+                                        <span style="color: var(--text-secondary); font-size: 14px;">Chambres</span>
+                                        <p style="font-size: 20px; font-weight: 600;">2</p>
+                                    </div>
+                                    <div>
+                                        <span style="color: var(--text-secondary); font-size: 14px;">Étage</span>
+                                        <p style="font-size: 20px; font-weight: 600;">3ème</p>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 style="margin-bottom: var(--spacing-md);">Description</h4>
+                                    <p style="line-height: 1.8; color: var(--text-secondary);">
+                                        Magnifique appartement de 75m² situé au 3ème étage d'un immeuble haussmannien. 
+                                        Très lumineux avec ses grandes fenêtres donnant sur rue. Comprend un séjour spacieux, 
+                                        deux chambres confortables, une cuisine équipée et une salle de bain moderne. 
+                                        Proche de toutes commodités et transports.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--spacing-xl); box-shadow: var(--shadow);">
+                                <h3 style="font-size: 20px; margin-bottom: var(--spacing-lg);">Caractéristiques</h3>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md);">
+                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                        <span style="color: var(--success);">✓</span> Ascenseur
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                        <span style="color: var(--success);">✓</span> Balcon
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                        <span style="color: var(--success);">✓</span> Cave
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                        <span style="color: var(--gray-300);">✗</span> Parking
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                        <span style="color: var(--gray-300);">✗</span> Garage
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                        <span style="color: var(--gray-300);">✗</span> Jardin
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div style="background: var(--accent); padding: var(--spacing-xl); border-radius: var(--radius-lg); margin-bottom: var(--spacing-lg);">
+                                <p style="font-size: 32px; font-weight: 700; color: var(--primary);">450 000 €</p>
+                                <p style="color: var(--primary); margin-top: var(--spacing-sm);">6 000 €/m²</p>
+                            </div>
+                            
+                            <div style="background: var(--white); padding: var(--spacing-lg); border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: var(--spacing-lg);">
+                                <h4 style="font-size: 18px; margin-bottom: var(--spacing-md);">Actions de partage</h4>
+                                <div style="display: grid; gap: var(--spacing-sm);">
+                                    <button class="btn btn-primary" style="width: 100%;" onclick="openShareModal('property1')">
+                                        <span>🔗</span>
+                                        Générer un lien de partage
+                                    </button>
+                                    <button class="btn btn-secondary" style="width: 100%;" onclick="generateQR('property1')">
+                                        <span>📱</span>
+                                        Créer un QR Code
+                                    </button>
+                                    <button class="btn btn-secondary" style="width: 100%;" onclick="showEmbed('property1')">
+                                        <span>📋</span>
+                                        Code d'intégration
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--white); padding: var(--spacing-lg); border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: var(--spacing-lg);">
+                                <h4 style="font-size: 18px; margin-bottom: var(--spacing-md);">Statut du scan 3D</h4>
+                                <div style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); background: rgba(16, 185, 129, 0.1); border-radius: var(--radius-md);">
+                                    <span style="font-size: 32px;">✅</span>
+                                    <div>
+                                        <p style="font-weight: 600; color: var(--success);">Scan complété</p>
+                                        <p style="font-size: 13px; color: var(--text-secondary);">Mis à jour il y a 2 jours</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--white); padding: var(--spacing-lg); border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                                <h4 style="font-size: 18px; margin-bottom: var(--spacing-md);">Statistiques</h4>
+                                <div style="space-y: var(--spacing-md);">
+                                    <div style="padding-bottom: var(--spacing-md); border-bottom: 1px solid var(--gray-200);">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-xs);">
+                                            <span style="color: var(--text-secondary);">Vues totales</span>
+                                            <span style="font-weight: 600;">234</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-secondary);">Cette semaine</span>
+                                            <span style="font-weight: 600; color: var(--success);">+47</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-xs);">
+                                            <span style="color: var(--text-secondary);">Leads générés</span>
+                                            <span style="font-weight: 600;">8</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-secondary);">Taux conversion</span>
+                                            <span style="font-weight: 600; color: var(--success);">3.4%</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-ghost" style="width: 100%; margin-top: var(--spacing-md);" onclick="viewStats('property1')">
+                                        <span>📊</span>
+                                        Voir les statistiques détaillées
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Processing Panel -->
+    <div class="processing-panel" id="processingPanel">
+        <div class="panel-header">
+            <h3 class="panel-title">Traitement en cours</h3>
+            <button class="panel-close" onclick="closeProcessingPanel()">✕</button>
+        </div>
+        <div class="panel-content">
+            <div style="margin-bottom: var(--spacing-xl);">
+                <h4 style="color: var(--primary); margin-bottom: var(--spacing-sm);">Villa moderne avec piscine</h4>
+                <p style="color: var(--text-secondary); font-size: 14px;">Neuilly-sur-Seine • 220 m²</p>
+            </div>
+            
+            <div style="background: var(--background); border-radius: var(--radius-lg); padding: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
+                    <span style="font-weight: 600;">Progression globale</span>
+                    <span style="font-weight: 600; color: var(--accent);">45%</span>
+                </div>
+                <div class="progress-bar" style="height: 12px;">
+                    <div class="progress-fill" style="width: 45%"></div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-top: var(--spacing-sm);">
+                    Temps estimé : ~12 minutes
+                </p>
+            </div>
+            
+            <h4 style="margin-bottom: var(--spacing-lg);">Étapes du traitement</h4>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot completed">✓</div>
+                    <div class="timeline-content">
+                        <h4>Upload terminé</h4>
+                        <p>487 MB + 234 MB • Il y a 15 min</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot completed">✓</div>
+                    <div class="timeline-content">
+                        <h4>Validation réussie</h4>
+                        <p>Qualité : 92/100 • Il y a 12 min</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot active">⚡</div>
+                    <div class="timeline-content">
+                        <h4>Génération du maillage 3D</h4>
+                        <p>En cours... 45% complété</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot">⏳</div>
+                    <div class="timeline-content">
+                        <h4>Mapping des textures</h4>
+                        <p>En attente</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot">⏳</div>
+                    <div class="timeline-content">
+                        <h4>Optimisation web</h4>
+                        <p>En attente</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: var(--spacing-xl); display: flex; gap: var(--spacing-sm);">
+                <button class="btn btn-secondary" style="flex: 1;">
+                    ⏸️ Mettre en pause
+                </button>
+                <button class="btn btn-ghost" style="flex: 1;">
+                    ❌ Annuler
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Share Modal (same as before) -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="share-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Partager le bien</h3>
+                <button class="modal-close" onclick="closeShareModal()">✕</button>
+            </div>
+            
+            <div class="modal-tabs">
+                <button class="modal-tab active" onclick="switchTab(event, 'link')">
+                    🔗 Lien rapide
+                </button>
+                <button class="modal-tab" onclick="switchTab(event, 'qr')">
+                    📱 QR Code
+                </button>
+                <button class="modal-tab" onclick="switchTab(event, 'embed')">
+                    📋 Intégrer
+                </button>
+                <button class="modal-tab" onclick="switchTab(event, 'advanced')">
+                    ⚙️ Avancé
+                </button>
+            </div>
+            
+            <div class="modal-content">
+                <!-- Link Tab -->
+                <div id="tab-link" class="tab-content active">
+                    <div class="share-option">
+                        <div class="share-option-label">Lien de partage</div>
+                        <div class="share-url-container">
+                            <input type="text" class="share-url-input" value="https://keymate.io/v/abc123" readonly>
+                            <button class="btn-copy" onclick="copyToClipboard()">
+                                📋 Copier
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="share-option">
+                        <div class="share-option-label">Options de partage</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Durée de validité</label>
+                                <select class="form-select">
+                                    <option>24 heures</option>
+                                    <option>7 jours</option>
+                                    <option selected>30 jours</option>
+                                    <option>90 jours</option>
+                                    <option>Permanent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Protection</label>
+                                <select class="form-select">
+                                    <option selected>Aucune</option>
+                                    <option>Email requis</option>
+                                    <option>Mot de passe</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- QR Code Tab -->
+                <div id="tab-qr" class="tab-content" style="display: none;">
+                    <div class="qr-preview">
+                        <div class="qr-code">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='white' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='black' font-family='monospace' font-size='14'%3E[QR CODE]%3C/text%3E%3C/svg%3E" alt="QR Code">
+                        </div>
+                        <div class="form-grid">
+                            <button class="btn btn-secondary">
+                                📥 PNG
+                            </button>
+                            <button class="btn btn-secondary">
+                                📥 SVG
+                            </button>
+                            <button class="btn btn-secondary">
+                                📥 PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Embed Tab -->
+                <div id="tab-embed" class="tab-content" style="display: none;">
+                    <div class="share-option">
+                        <div class="share-option-label">Code d'intégration</div>
+                        <div class="embed-code">&lt;iframe 
+  src="https://keymate.io/embed/abc123"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allowfullscreen&gt;
+&lt;/iframe&gt;</div>
+                        <button class="btn btn-primary" style="margin-top: var(--spacing-md);">
+                            📋 Copier le code
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Advanced Tab -->
+                <div id="tab-advanced" class="tab-content" style="display: none;">
+                    <div class="share-option">
+                        <div class="form-group">
+                            <label class="form-label">Message personnalisé</label>
+                            <textarea class="form-textarea" placeholder="Ajoutez un message pour vos clients..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <input type="checkbox" checked> Activer le tracking
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <input type="checkbox"> Ajouter filigrane sur visite 3D
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan Start Modal -->
+    <div class="modal-overlay" id="scanStartModal">
+        <div class="share-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Démarrer une capture 3D</h3>
+                <button class="modal-close" onclick="closeScanModal()">✕</button>
+            </div>
+            
+            <div class="modal-content" style="text-align: center;">
+                <div class="qr-preview">
+                    <p style="margin-bottom: var(--spacing-lg); color: var(--text-secondary);">
+                        Scannez ce QR code avec l'app KeyMate pour démarrer la capture
+                    </p>
+                    <div class="qr-code" style="margin: 0 auto;">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='white' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='black' font-family='monospace' font-size='14'%3E[QR SCAN APP]%3C/text%3E%3C/svg%3E" alt="QR Code">
+                    </div>
+                    <p style="margin-top: var(--spacing-md); font-size: 14px; color: var(--text-secondary);">
+                        Session ID: <strong>AG-2024-0042-SCAN</strong>
+                    </p>
+                </div>
+                
+                <div style="background: var(--background); border-radius: var(--radius-lg); padding: var(--spacing-lg); margin-top: var(--spacing-xl);">
+                    <h4 style="font-size: 16px; margin-bottom: var(--spacing-md);">Instructions</h4>
+                    <ol style="text-align: left; color: var(--text-secondary); font-size: 14px; line-height: 1.8;">
+                        <li>Ouvrez l'app KeyMate sur votre smartphone</li>
+                        <li>Scannez ce QR code ou entrez l'ID de session</li>
+                        <li>Suivez les instructions de capture à l'écran</li>
+                        <li>Les fichiers seront automatiquement liés à ce bien</li>
+                    </ol>
+                </div>
+                
+                <div style="margin-top: var(--spacing-xl);">
+                    <button class="btn btn-primary" style="width: 100%;">
+                        📲 Envoyer le lien par SMS
+                    </button>
+                    <button class="btn btn-ghost" style="width: 100%; margin-top: var(--spacing-sm);" onclick="closeScanModal(); showSection('upload'); setTimeout(() => showUploadArea(), 100);">
+                        J'ai déjà les fichiers
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation functions
+        function navigateToSection(section) {
+            document.querySelectorAll('.top-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            if (section === 'properties') {
+                document.querySelectorAll('.top-nav-item')[0].classList.add('active');
+            } else if (section === 'analytics') {
+                document.querySelectorAll('.top-nav-item')[1].classList.add('active');
+            } else if (section === 'profile') {
+                document.querySelectorAll('.top-nav-item')[2].classList.add('active');
+            }
+        }
+
+        function showModal(modalName) {
+            if (modalName === 'logout') {
+                if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                    // Logout logic
+                    window.location.href = '/login';
+                }
+            }
+        }
+
+        // Section navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => {
+                s.classList.remove('active');
+                s.classList.remove('animate-fadeInUp');
+            });
+            
+            // Show selected section
+            const sectionElement = document.getElementById(section + '-section');
+            if (sectionElement) {
+                sectionElement.classList.add('active');
+                // Re-trigger animation
+                setTimeout(() => {
+                    sectionElement.classList.add('animate-fadeInUp');
+                }, 10);
+                
+                // Reset upload section to show options
+                if (section === 'upload') {
+                    showUploadOptions();
+                }
+            }
+            
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (section === 'properties' || section === 'create' || section === 'upload' || section === 'detail') {
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+            } else if (section === 'processing') {
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+            } else if (section === 'archived') {
+                document.querySelectorAll('.nav-item')[2].classList.add('active');
+            }
+            
+            // Update breadcrumb
+            const breadcrumb = document.querySelector('.breadcrumb-current');
+            const breadcrumbMap = {
+                'properties': 'Gestion des biens',
+                'create': 'Nouveau bien',
+                'upload': 'Capture 3D',
+                'detail': 'Détails du bien',
+                'processing': 'En traitement',
+                'archived': 'Biens archivés'
+            };
+            if (breadcrumb) {
+                breadcrumb.textContent = breadcrumbMap[section] || 'Gestion des biens';
+            }
+        }
+
+        // View filtering
+        function filterView(view) {
+            document.querySelectorAll('.view-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter logic here
+            console.log('Filtering view:', view);
+        }
+
+        // Share modal functions
+        function openShareModal(propertyId) {
+            document.getElementById('shareModal').classList.add('active');
+            console.log('Opening share modal for property:', propertyId);
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function switchTab(event, tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.modal-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById('tab-' + tabName).style.display = 'block';
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+        }
+
+        function copyToClipboard() {
+            const input = document.querySelector('.share-url-input');
+            input.select();
+            document.execCommand('copy');
+            
+            // Change button text temporarily
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Copié !';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+            }, 2000);
+        }
+
+        function generateQR(propertyId) {
+            // Switch to QR tab in modal
+            openShareModal(propertyId);
+            setTimeout(() => {
+                const qrTab = document.querySelectorAll('.modal-tab')[1];
+                qrTab.click();
+            }, 100);
+        }
+
+        function showEmbed(propertyId) {
+            // Switch to Embed tab in modal
+            openShareModal(propertyId);
+            setTimeout(() => {
+                const embedTab = document.querySelectorAll('.modal-tab')[2];
+                embedTab.click();
+            }, 100);
+        }
+
+        function viewStats(propertyId) {
+            console.log('Viewing stats for property:', propertyId);
+            // Could show stats in processing panel or navigate to analytics
+        }
+
+        // Scan functions
+        function startNewScan() {
+            document.getElementById('scanStartModal').classList.add('active');
+        }
+
+        function closeScanModal() {
+            document.getElementById('scanStartModal').classList.remove('active');
+        }
+
+        function showUploadArea() {
+            document.getElementById('upload-options').style.display = 'none';
+            document.getElementById('upload-area-container').style.display = 'block';
+        }
+
+        function showUploadOptions() {
+            document.getElementById('upload-options').style.display = 'grid';
+            document.getElementById('upload-area-container').style.display = 'none';
+        }
+
+        // Processing panel
+        function openProcessingPanel(propertyId) {
+            document.getElementById('processingPanel').classList.add('active');
+        }
+
+        function closeProcessingPanel() {
+            document.getElementById('processingPanel').classList.remove('active');
+        }
+
+        // Drag and drop
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files);
+            console.log('Files dropped:', files);
+            // Handle file upload here
+        }
+
+        // Notifications
+        function showNotification(title, message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <div class="notification-header">
+                    <span class="notification-icon">${type === 'success' ? '🎉' : '⚠️'}</span>
+                    <h3 class="notification-title">${title}</h3>
+                </div>
+                <p class="notification-message">${message}</p>
+                <div class="notification-actions">
+                    <button class="btn btn-ghost" onclick="this.parentElement.parentElement.remove()">Fermer</button>
+                </div>
+            `;
+            
+            document.getElementById('notificationContainer').appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Network status monitoring
+        function updateNetworkStatus() {
+            const networkStatus = navigator.onLine;
+            const signalBars = document.querySelectorAll('.signal-bar');
+            
+            if (!networkStatus) {
+                signalBars.forEach(bar => bar.classList.remove('active'));
+                document.querySelector('.network-status span:nth-child(2)').textContent = 'Hors ligne';
+            } else {
+                // Simulate signal strength
+                const strength = Math.floor(Math.random() * 5);
+                signalBars.forEach((bar, index) => {
+                    bar.classList.toggle('active', index < strength);
+                });
+                
+                // Update connection type (simulate)
+                const types = ['WiFi', '4G', '5G'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                document.querySelector('.network-status span:nth-child(2)').textContent = type;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate elements on load
+            const elements = document.querySelectorAll('.stat-card, .property-card');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    el.style.transition = 'all 0.5s ease';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+            
+            // Search functionality
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    // Implement search logic here
+                    console.log('Search:', e.target.value);
+                });
+            }
+            
+            // Close modals on overlay click
+            document.getElementById('shareModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeShareModal();
+                }
+            });
+            
+            document.getElementById('scanStartModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeScanModal();
+                }
+            });
+            
+            // Update network status
+            setInterval(updateNetworkStatus, 5000);
+            updateNetworkStatus();
+            
+            // Simulate processing completion
+            setTimeout(() => {
+                showNotification(
+                    'Visite 3D prête !',
+                    'La reconstruction 3D de "Villa moderne avec piscine" est terminée avec succès.'
+                );
+            }, 10000);
+        });
+    </script>
+</body>
+</html>
