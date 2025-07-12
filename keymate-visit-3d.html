@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KeyMate - Visite 3D Immersive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #3C4553;
+            --bg-beige: #FAF5EF;
+            --accent-yellow: #FFC107;
+            --text-gray: #6B7280;
+            --white: #FFFFFF;
+            --light-gray: #F3F4F6;
+            --border-gray: #E5E7EB;
+            --shadow-sm: 0 1px 3px rgba(60, 69, 83, 0.1);
+            --shadow-md: 0 4px 6px rgba(60, 69, 83, 0.1);
+            --shadow-lg: 0 10px 15px rgba(60, 69, 83, 0.1);
+            --shadow-xl: 0 20px 25px rgba(60, 69, 83, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--bg-beige);
+            color: var(--primary-blue);
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-beige);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+
+        .loading-content {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        .loading-preview {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, var(--light-gray) 0%, var(--white) 50%, var(--light-gray) 100%);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .loading-preview::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            to { left: 100%; }
+        }
+
+        .loading-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 12px;
+        }
+
+        .loading-subtitle {
+            color: var(--text-gray);
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .loading-bar {
+            width: 280px;
+            height: 6px;
+            background: var(--white);
+            border-radius: 3px;
+            margin: 0 auto 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: var(--accent-yellow);
+            border-radius: 3px;
+            animation: loading 2s ease-out;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+        }
+
+        @keyframes loading {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* 3D Viewer Container */
+        .viewer-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: #1a1a1a;
+        }
+
+        .viewer-3d {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #2a2a2a 0%, #1a1a1a 100%);
+            cursor: grab;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .viewer-3d:active {
+            cursor: grabbing;
+        }
+
+        /* Header Bar */
+        .header-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: rgba(250, 245, 239, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .header-bar.hidden {
+            transform: translateY(-100%);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .logo-svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* Property Info Panel */
+        .info-panel {
+            position: absolute;
+            top: 80px;
+            left: 24px;
+            width: 380px;
+            background: rgba(250, 245, 239, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 90;
+        }
+
+        .info-panel.collapsed {
+            width: 60px;
+            height: 60px;
+        }
+
+        .info-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            background: var(--white);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10;
+            box-shadow: var(--shadow-sm);
+            color: var(--primary-blue);
+        }
+
+        .info-toggle:hover {
+            background: var(--accent-yellow);
+            transform: scale(1.1);
+            box-shadow: var(--shadow-md);
+        }
+
+        .info-content {
+            padding: 28px;
+            transition: opacity 0.3s;
+        }
+
+        .info-panel.collapsed .info-content {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .property-badge {
+            display: inline-block;
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .property-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        .property-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-blue);
+            line-height: 1.3;
+        }
+
+        .property-address {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-gray);
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .property-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 20px 0;
+            border-top: 1px solid var(--border-gray);
+            border-bottom: 1px solid var(--border-gray);
+            margin-bottom: 24px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--primary-blue);
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--white);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .contact-section {
+            margin-top: 24px;
+        }
+
+        .agent-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .agent-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .agent-details h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 2px;
+        }
+
+        .agent-details p {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .contact-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            background: #FFB300;
+        }
+
+        .contact-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Navigation Controls */
+        .nav-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(250, 245, 239, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 60px;
+            box-shadow: var(--shadow-xl);
+            z-index: 80;
+        }
+
+        .nav-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: var(--white);
+            color: var(--primary-blue);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-btn:hover {
+            background: var(--accent-yellow);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .nav-home {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .nav-home:hover {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+        }
+
+        /* Mini Map */
+        .mini-map {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 200px;
+            height: 140px;
+            background: rgba(250, 245, 239, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--shadow-xl);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 80;
+        }
+
+        .mini-map:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .map-container {
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .map-floor {
+            position: absolute;
+            background: var(--light-gray);
+            border: 1px solid var(--border-gray);
+        }
+
+        .room-1 { top: 10px; left: 10px; width: 70px; height: 45px; }
+        .room-2 { top: 10px; left: 90px; width: 50px; height: 45px; }
+        .room-3 { top: 65px; left: 10px; width: 50px; height: 40px; }
+        .room-4 { top: 65px; left: 70px; width: 70px; height: 40px; }
+
+        .map-pointer {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: var(--accent-yellow);
+            border: 3px solid var(--white);
+            border-radius: 50%;
+            top: 30px;
+            left: 45px;
+            box-shadow: 0 2px 6px rgba(60, 69, 83, 0.3);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            display: flex;
+            gap: 12px;
+            z-index: 150;
+        }
+
+        .action-btn {
+            width: 44px;
+            height: 44px;
+            background: var(--white);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-md);
+            color: var(--primary-blue);
+        }
+
+        .action-btn:hover {
+            background: var(--accent-yellow);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Quality Badge */
+        .quality-badge {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(250, 245, 239, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 13px;
+            color: var(--text-gray);
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 80;
+        }
+
+        .quality-badge:hover {
+            background: var(--white);
+            color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .quality-dot {
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        }
+
+        .quality-badge.low .quality-dot {
+            background: var(--accent-yellow);
+            box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
+        }
+
+        /* Touch Hint */
+        .touch-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            pointer-events: none;
+            animation: fadeInOut 4s ease-out;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            background: rgba(60, 69, 83, 0.8);
+            padding: 16px 32px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            20%, 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* Immersive Mode UI */
+        .immersive-ui {
+            transition: opacity 0.3s ease;
+        }
+
+        .viewer-container.immersive .immersive-ui {
+            opacity: 0;
+        }
+
+        .viewer-container.immersive:hover .immersive-ui {
+            opacity: 1;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .header-bar {
+                height: 56px;
+                padding: 0 16px;
+            }
+
+            .logo-svg {
+                width: 28px;
+                height: 28px;
+            }
+
+            .logo-text {
+                font-size: 18px;
+            }
+
+            .info-panel {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-width: none;
+                border-radius: 24px 24px 0 0;
+                transform: translateY(calc(100% - 140px));
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .info-panel.expanded {
+                transform: translateY(0);
+            }
+
+            .info-toggle {
+                top: 16px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 5px;
+                border-radius: 3px;
+                background: var(--border-gray);
+            }
+
+            .info-toggle:hover {
+                transform: translateX(-50%) scale(1);
+                background: var(--border-gray);
+            }
+
+            .info-content {
+                padding: 20px;
+                padding-top: 40px;
+            }
+
+            .property-price {
+                font-size: 28px;
+            }
+
+            .mini-map {
+                width: 140px;
+                height: 100px;
+                bottom: 160px;
+                right: 16px;
+                padding: 12px;
+            }
+
+            .nav-controls {
+                bottom: 16px;
+                padding: 10px 16px;
+                gap: 10px;
+            }
+
+            .nav-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            .action-buttons {
+                top: 12px;
+                right: 16px;
+                gap: 8px;
+            }
+
+            .action-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .quality-badge {
+                display: none;
+            }
+        }
+
+        /* Simulated 3D Room (placeholder) */
+        .room-simulation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) perspective(1000px) rotateX(15deg) rotateY(25deg);
+            width: 600px;
+            height: 400px;
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+        }
+
+        .room-floor {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #3a3a3a 25%, #2a2a2a 25%, #2a2a2a 50%, #3a3a3a 50%, #3a3a3a 75%, #2a2a2a 75%, #2a2a2a);
+            background-size: 50px 50px;
+            transform: rotateX(90deg) translateZ(-200px);
+            opacity: 0.8;
+        }
+
+        .room-wall {
+            position: absolute;
+            background: linear-gradient(to bottom, rgba(60, 69, 83, 0.1), rgba(60, 69, 83, 0.2));
+            border: 1px solid rgba(60, 69, 83, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .wall-back {
+            width: 100%;
+            height: 400px;
+            transform: translateZ(-300px);
+        }
+
+        .wall-left {
+            width: 600px;
+            height: 400px;
+            transform: rotateY(90deg) translateZ(-300px);
+            left: -300px;
+        }
+
+        .wall-right {
+            width: 600px;
+            height: 400px;
+            transform: rotateY(-90deg) translateZ(-300px);
+            right: -300px;
+        }
+
+        /* Help Overlay */
+        .help-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(60, 69, 83, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .help-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .help-content {
+            background: var(--bg-beige);
+            padding: 48px;
+            border-radius: 24px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+            text-align: center;
+        }
+
+        .help-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 32px;
+        }
+
+        .help-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .help-item {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .help-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .help-item h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: var(--text-gray);
+            line-height: 1.5;
+        }
+
+        .help-close {
+            padding: 14px 32px;
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .help-close:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <svg viewBox="0 0 296 427" fill="#3C4553">
+                    <g transform="translate(0,427) scale(0.1,-0.1)">
+                        <path d="M1391 3921 c-32 -20 -1064 -1059 -1079 -1086 -15 -27 -17 -93 -20 -645 -2 -431 0 -626 8 -653 7 -25 22 -45 43 -57 30 -19 53 -20 363 -20 407 0 377 -11 382 143 4 99 3 105 -21 133 l-25 29 -208 3 c-128 2 -213 7 -221 14 -10 8 -13 107 -13 461 l0 451 417 418 c230 230 425 418 433 418 8 0 203 -188 433 -418 l417 -418 0 -442 c0 -287 -4 -450 -10 -463 -10 -18 -23 -19 -225 -19 l-214 0 -20 -26 c-18 -23 -21 -41 -21 -135 0 -162 -33 -149 378 -149 319 0 339 1 370 20 18 11 37 32 42 46 7 16 10 262 10 651 -1 593 -2 627 -20 661 -10 21 -114 131 -232 247 -117 115 -357 353 -533 527 l-321 318 -49 0 c-28 0 -56 -4 -64 -9z"/>
+                        <path d="M1425 2756 c-11 -7 -80 -46 -153 -86 l-132 -72 2 -181 3 -181 110 -62 c61 -35 131 -72 156 -84 l46 -22 74 37 c41 21 109 58 152 83 l77 46 0 182 0 182 -153 86 c-85 47 -155 86 -158 85 -2 0 -13 -6 -24 -13z"/>
+                        <path d="M1364 1891 c-17 -11 -36 -34 -43 -52 -8 -23 -11 -254 -11 -796 0 -839 -2 -810 59 -846 39 -23 157 -23 189 -1 31 22 52 66 52 112 0 22 6 44 13 50 6 6 68 12 135 14 122 3 124 3 149 32 24 28 25 34 21 133 -4 135 -12 143 -133 143 -105 0 -115 8 -115 94 0 39 5 67 13 74 6 5 52 12 100 14 126 6 132 14 132 159 0 148 -1 149 -169 149 -82 0 -126 4 -134 12 -9 9 -12 95 -12 327 0 298 -1 318 -20 349 -25 40 -54 52 -133 52 -43 0 -71 -6 -93 -19z"/>
+                    </g>
+                </svg>
+            </div>
+            <div class="loading-preview"></div>
+            <h2 class="loading-title">Préparation de votre visite</h2>
+            <p class="loading-subtitle">Appartement 3 pièces • Paris 11ème</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Chargement en cours...</p>
+        </div>
+    </div>
+
+    <!-- 3D Viewer -->
+    <div class="viewer-container" id="viewerContainer">
+        <!-- Header Bar -->
+        <div class="header-bar immersive-ui" id="headerBar">
+            <div class="logo-container">
+                <svg class="logo-svg" viewBox="0 0 296 427" fill="#3C4553">
+                    <g transform="translate(0,427) scale(0.1,-0.1)">
+                        <path d="M1391 3921 c-32 -20 -1064 -1059 -1079 -1086 -15 -27 -17 -93 -20 -645 -2 -431 0 -626 8 -653 7 -25 22 -45 43 -57 30 -19 53 -20 363 -20 407 0 377 -11 382 143 4 99 3 105 -21 133 l-25 29 -208 3 c-128 2 -213 7 -221 14 -10 8 -13 107 -13 461 l0 451 417 418 c230 230 425 418 433 418 8 0 203 -188 433 -418 l417 -418 0 -442 c0 -287 -4 -450 -10 -463 -10 -18 -23 -19 -225 -19 l-214 0 -20 -26 c-18 -23 -21 -41 -21 -135 0 -162 -33 -149 378 -149 319 0 339 1 370 20 18 11 37 32 42 46 7 16 10 262 10 651 -1 593 -2 627 -20 661 -10 21 -114 131 -232 247 -117 115 -357 353 -533 527 l-321 318 -49 0 c-28 0 -56 -4 -64 -9z"/>
+                        <path d="M1425 2756 c-11 -7 -80 -46 -153 -86 l-132 -72 2 -181 3 -181 110 -62 c61 -35 131 -72 156 -84 l46 -22 74 37 c41 21 109 58 152 83 l77 46 0 182 0 182 -153 86 c-85 47 -155 86 -158 85 -2 0 -13 -6 -24 -13z"/>
+                        <path d="M1364 1891 c-17 -11 -36 -34 -43 -52 -8 -23 -11 -254 -11 -796 0 -839 -2 -810 59 -846 39 -23 157 -23 189 -1 31 22 52 66 52 112 0 22 6 44 13 50 6 6 68 12 135 14 122 3 124 3 149 32 24 28 25 34 21 133 -4 135 -12 143 -133 143 -105 0 -115 8 -115 94 0 39 5 67 13 74 6 5 52 12 100 14 126 6 132 14 132 159 0 148 -1 149 -169 149 -82 0 -126 4 -134 12 -9 9 -12 95 -12 327 0 298 -1 318 -20 349 -25 40 -54 52 -133 52 -43 0 -71 -6 -93 -19z"/>
+                    </g>
+                </svg>
+                <span class="logo-text">KeyMate</span>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn" onclick="toggleFullscreen()" title="Mode immersif">
+                    <span id="fullscreenIcon">⛶</span>
+                </button>
+                <button class="action-btn" onclick="showShare()" title="Partager">
+                    🔗
+                </button>
+                <button class="action-btn" onclick="showHelp()" title="Aide">
+                    ❓
+                </button>
+            </div>
+        </div>
+
+        <!-- 3D View -->
+        <div class="viewer-3d" id="viewer3d">
+            <!-- Simulated 3D Room (placeholder) -->
+            <div class="room-simulation" id="roomSimulation">
+                <div class="room-floor"></div>
+                <div class="room-wall wall-back"></div>
+                <div class="room-wall wall-left"></div>
+                <div class="room-wall wall-right"></div>
+            </div>
+
+            <!-- Touch Hint -->
+            <div class="touch-hint" id="touchHint">👆 Cliquez pour naviguer</div>
+        </div>
+
+        <!-- Property Info Panel -->
+        <div class="info-panel immersive-ui" id="infoPanel">
+            <button class="info-toggle" onclick="toggleInfo()"></button>
+            <div class="info-content">
+                <span class="property-badge">EXCLUSIVITÉ</span>
+                <div class="property-price">450 000 €</div>
+                <h1 class="property-title">Appartement lumineux avec balcon</h1>
+                <div class="property-address">
+                    📍 15 rue Voltaire, 75011 Paris
+                </div>
+                
+                <div class="property-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">🏠</div>
+                        <div>
+                            <strong>75 m²</strong><br>
+                            <small>Surface totale</small>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🛏️</div>
+                        <div>
+                            <strong>3 pièces</strong><br>
+                            <small>2 chambres</small>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🏛️</div>
+                        <div>
+                            <strong>3ème étage</strong><br>
+                            <small>Avec ascenseur</small>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">☀️</div>
+                        <div>
+                            <strong>Sud-Ouest</strong><br>
+                            <small>Très lumineux</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-section">
+                    <div class="agent-info">
+                        <div class="agent-avatar">MD</div>
+                        <div class="agent-details">
+                            <h4>Marie Dupont</h4>
+                            <p>KeyMate Immobilier</p>
+                        </div>
+                    </div>
+                    <button class="contact-btn" onclick="showContact()">
+                        Contacter l'agent
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="nav-controls immersive-ui">
+            <button class="nav-btn" onclick="navigateRoom('left')" title="Pièce précédente">
+                ←
+            </button>
+            <button class="nav-btn nav-home" onclick="goToHome()" title="Retour à l'entrée">
+                🏠
+            </button>
+            <button class="nav-btn" onclick="navigateRoom('right')" title="Pièce suivante">
+                →
+            </button>
+        </div>
+
+        <!-- Mini Map -->
+        <div class="mini-map immersive-ui" onclick="toggleMapSize()">
+            <div class="map-container">
+                <div class="map-floor room-1"></div>
+                <div class="map-floor room-2"></div>
+                <div class="map-floor room-3"></div>
+                <div class="map-floor room-4"></div>
+                <div class="map-pointer" id="mapPointer"></div>
+            </div>
+        </div>
+
+        <!-- Quality Badge -->
+        <div class="quality-badge immersive-ui" onclick="toggleQuality()">
+            <span class="quality-dot"></span>
+            <span id="qualityText">Qualité HD</span>
+        </div>
+    </div>
+
+    <!-- Help Overlay -->
+    <div class="help-overlay" id="helpOverlay">
+        <div class="help-content">
+            <h2 class="help-title">Comment naviguer ?</h2>
+            <div class="help-grid">
+                <div class="help-item">
+                    <div class="help-icon">🖱️</div>
+                    <h4>Cliquez pour avancer</h4>
+                    <p class="help-text">Cliquez sur le sol pour vous déplacer vers ce point</p>
+                </div>
+                <div class="help-item">
+                    <div class="help-icon">🔄</div>
+                    <h4>Glissez pour regarder</h4>
+                    <p class="help-text">Maintenez et glissez pour tourner la vue</p>
+                </div>
+                <div class="help-item">
+                    <div class="help-icon">🔍</div>
+                    <h4>Molette pour zoomer</h4>
+                    <p class="help-text">Utilisez la molette ou pincez sur mobile</p>
+                </div>
+                <div class="help-item">
+                    <div class="help-icon">⌨️</div>
+                    <h4>Touches directionnelles</h4>
+                    <p class="help-text">Utilisez les flèches pour vous déplacer</p>
+                </div>
+            </div>
+            <button class="help-close" onclick="hideHelp()">Compris !</button>
+        </div>
+    </div>
+
+    <script>
+        // Simulation variables
+        let isFullscreen = false;
+        let isImmersive = false;
+        let currentQuality = 'high';
+        let rotationX = 15;
+        let rotationY = 25;
+        let isDragging = false;
+        let lastX = 0;
+        let lastY = 0;
+        let immersiveTimer = null;
+
+        // Hide loading screen after delay
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }, 2500);
+
+        // Mouse/Touch controls for 3D viewer
+        const viewer = document.getElementById('viewer3d');
+        const room = document.getElementById('roomSimulation');
+
+        viewer.addEventListener('mousedown', startDrag);
+        viewer.addEventListener('mousemove', drag);
+        viewer.addEventListener('mouseup', endDrag);
+        viewer.addEventListener('mouseleave', endDrag);
+
+        viewer.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startDrag(e.touches[0]);
+        });
+        viewer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            drag(e.touches[0]);
+        });
+        viewer.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            viewer.style.cursor = 'grabbing';
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - lastX;
+            const deltaY = e.clientY - lastY;
+
+            rotationY += deltaX * 0.5;
+            rotationX = Math.max(-30, Math.min(30, rotationX - deltaY * 0.5));
+
+            room.style.transform = `translate(-50%, -50%) perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+
+            lastX = e.clientX;
+            lastY = e.clientY;
+        }
+
+        function endDrag() {
+            isDragging = false;
+            viewer.style.cursor = 'grab';
+        }
+
+        // Immersive mode auto-hide
+        function setupImmersiveMode() {
+            const container = document.getElementById('viewerContainer');
+            
+            const showUI = () => {
+                clearTimeout(immersiveTimer);
+                container.classList.remove('immersive');
+                
+                immersiveTimer = setTimeout(() => {
+                    if (isImmersive) {
+                        container.classList.add('immersive');
+                    }
+                }, 3000);
+            };
+
+            container.addEventListener('mousemove', showUI);
+            container.addEventListener('click', showUI);
+            container.addEventListener('touchstart', showUI);
+        }
+
+        setupImmersiveMode();
+
+        // Toggle functions
+        function toggleInfo() {
+            const panel = document.getElementById('infoPanel');
+            
+            if (window.innerWidth <= 768) {
+                panel.classList.toggle('expanded');
+            } else {
+                panel.classList.toggle('collapsed');
+            }
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById('viewerContainer');
+            const icon = document.getElementById('fullscreenIcon');
+            
+            if (!isFullscreen) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+                icon.textContent = '⊡';
+                isFullscreen = true;
+                isImmersive = true;
+                
+                // Start immersive timer
+                setTimeout(() => {
+                    container.classList.add('immersive');
+                }, 3000);
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                icon.textContent = '⛶';
+                isFullscreen = false;
+                isImmersive = false;
+                container.classList.remove('immersive');
+            }
+        }
+
+        function toggleQuality() {
+            const qualityText = document.getElementById('qualityText');
+            const badge = document.querySelector('.quality-badge');
+            
+            if (currentQuality === 'high') {
+                currentQuality = 'low';
+                qualityText.textContent = 'Mode éco';
+                badge.classList.add('low');
+            } else {
+                currentQuality = 'high';
+                qualityText.textContent = 'Qualité HD';
+                badge.classList.remove('low');
+            }
+        }
+
+        function showHelp() {
+            document.getElementById('helpOverlay').classList.add('show');
+        }
+
+        function hideHelp() {
+            document.getElementById('helpOverlay').classList.remove('show');
+        }
+
+        function showShare() {
+            alert('Partager: https://keymate.fr/v/appt-paris-11-a5b2c9');
+        }
+
+        function showContact() {
+            alert('Formulaire de contact à implémenter');
+        }
+
+        function navigateRoom(direction) {
+            const pointer = document.getElementById('mapPointer');
+            const currentLeft = parseInt(pointer.style.left || 45);
+            const currentTop = parseInt(pointer.style.top || 30);
+            
+            if (direction === 'left' && currentLeft > 20) {
+                pointer.style.left = (currentLeft - 30) + 'px';
+            } else if (direction === 'right' && currentLeft < 120) {
+                pointer.style.left = (currentLeft + 30) + 'px';
+            }
+        }
+
+        function goToHome() {
+            document.getElementById('mapPointer').style.left = '45px';
+            document.getElementById('mapPointer').style.top = '30px';
+            rotationY = 25;
+            rotationX = 15;
+            room.style.transform = `translate(-50%, -50%) perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+        }
+
+        function toggleMapSize() {
+            const map = document.querySelector('.mini-map');
+            if (map.style.width === '400px') {
+                map.style.width = '200px';
+                map.style.height = '140px';
+            } else {
+                map.style.width = '400px';
+                map.style.height = '280px';
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    navigateRoom('left');
+                    break;
+                case 'ArrowRight':
+                    navigateRoom('right');
+                    break;
+                case 'f':
+                case 'F':
+                    toggleFullscreen();
+                    break;
+                case 'h':
+                case 'H':
+                case '?':
+                    showHelp();
+                    break;
+                case 'i':
+                case 'I':
+                    toggleInfo();
+                    break;
+                case 'Escape':
+                    hideHelp();
+                    if (isFullscreen) toggleFullscreen();
+                    break;
+            }
+        });
+
+        // Click navigation simulation
+        viewer.addEventListener('click', (e) => {
+            if (!isDragging) {
+                const rect = viewer.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                
+                // Simulate movement feedback
+                const hint = document.getElementById('touchHint');
+                hint.style.left = e.clientX + 'px';
+                hint.style.top = e.clientY + 'px';
+                hint.textContent = '✓ Déplacement...';
+                hint.style.display = 'block';
+                hint.style.animation = 'fadeInOut 2s ease-out';
+                
+                setTimeout(() => {
+                    hint.style.display = 'none';
+                }, 2000);
+            }
+        });
+
+        // Mobile swipe to show info panel
+        if (window.innerWidth <= 768) {
+            let touchStartY = 0;
+            const infoPanel = document.getElementById('infoPanel');
+            
+            infoPanel.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            infoPanel.addEventListener('touchmove', (e) => {
+                const touchY = e.touches[0].clientY;
+                const deltaY = touchStartY - touchY;
+                
+                if (deltaY > 50) {
+                    infoPanel.classList.add('expanded');
+                } else if (deltaY < -50) {
+                    infoPanel.classList.remove('expanded');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KeyMate - Module de Traitement 3D</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Palette KeyMate */
+            --primary-blue: #3C4553;
+            --bg-beige: #FAF5EF;
+            --accent-yellow: #FFC107;
+            --text-gray: #6B7280;
+            --white: #FFFFFF;
+            --light-gray: #F3F4F6;
+            --border-gray: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --info: #3B82F6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: var(--bg-beige);
+            color: var(--primary-blue);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(60, 69, 83, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-svg {
+            height: 40px;
+            width: auto;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .network-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background-color: var(--light-gray);
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(60, 69, 83, 0.08);
+        }
+
+        .upload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .upload-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-gray);
+            border-radius: 12px;
+            padding: 48px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: var(--bg-beige);
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-yellow);
+            background-color: rgba(255, 193, 7, 0.05);
+        }
+
+        .upload-area.dragging {
+            border-color: var(--accent-yellow);
+            background-color: rgba(255, 193, 7, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--text-gray);
+        }
+
+        .upload-text {
+            font-size: 16px;
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* Queue Stats */
+        .queue-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(60, 69, 83, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* Queue Actions */
+        .queue-actions {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(60, 69, 83, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-yellow);
+            color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: #E6AD00;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--light-gray);
+            color: var(--primary-blue);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-gray);
+        }
+
+        /* Processing Items */
+        .processing-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .processing-item {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(60, 69, 83, 0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .processing-item:hover {
+            box-shadow: 0 8px 30px rgba(60, 69, 83, 0.12);
+        }
+
+        .processing-item.uploading {
+            border-left: 4px solid var(--info);
+        }
+
+        .processing-item.validating {
+            border-left: 4px solid var(--warning);
+        }
+
+        .processing-item.processing {
+            border-left: 4px solid var(--accent-yellow);
+        }
+
+        .processing-item.completed {
+            border-left: 4px solid var(--success);
+        }
+
+        .processing-item.error {
+            border-left: 4px solid var(--error);
+        }
+
+        .item-header {
+            padding: 20px 24px;
+            cursor: pointer;
+        }
+
+        .item-header:hover {
+            background-color: rgba(60, 69, 83, 0.02);
+        }
+
+        .item-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .item-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .item-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background-color: var(--light-gray);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 24px 20px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: var(--border-gray);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-yellow);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Timeline */
+        .timeline {
+            padding: 20px 24px;
+            background-color: rgba(60, 69, 83, 0.02);
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            padding: 12px 0;
+            position: relative;
+        }
+
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 44px;
+            bottom: -12px;
+            width: 2px;
+            background-color: var(--border-gray);
+        }
+
+        .timeline-dot {
+            width: 40px;
+            height: 40px;
+            background-color: var(--white);
+            border: 2px solid var(--border-gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .timeline-dot.completed {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .timeline-dot.active {
+            background-color: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            color: var(--primary-blue);
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 4px;
+        }
+
+        .timeline-time {
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(60, 69, 83, 0.2);
+            max-width: 400px;
+            transform: translateY(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .notification-message {
+            color: var(--text-gray);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* Loading States */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-gray);
+            border-radius: 50%;
+            border-top-color: var(--accent-yellow);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 16px;
+            }
+
+            .queue-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .queue-actions {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .action-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .item-meta {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .notification {
+                left: 16px;
+                right: 16px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-container">
+                <svg class="logo-svg" viewBox="0 0 296 427" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="#3C4553" stroke="none" transform="translate(0.000000,427.000000) scale(0.100000,-0.100000)">
+                        <path d="M1391 3921 c-32 -20 -1064 -1059 -1079 -1086 -15 -27 -17 -93 -20 -645 -2 -431 0 -626 8 -653 7 -25 22 -45 43 -57 30 -19 53 -20 363 -20 407 0 377 -11 382 143 4 99 3 105 -21 133 l-25 29 -208 3 c-128 2 -213 7 -221 14 -10 8 -13 107 -13 461 l0 451 417 418 c230 230 425 418 433 418 8 0 203 -188 433 -418 l417 -418 0 -442 c0 -287 -4 -450 -10 -463 -10 -18 -23 -19 -225 -19 l-214 0 -20 -26 c-18 -23 -21 -41 -21 -135 0 -162 -33 -149 378 -149 319 0 339 1 370 20 18 11 37 32 42 46 7 16 10 262 10 651 -1 593 -2 627 -20 661 -10 21 -114 131 -232 247 -117 115 -357 353 -533 527 l-321 318 -49 0 c-28 0 -56 -4 -64 -9z"/>
+                        <path d="M1425 2756 c-11 -7 -80 -46 -153 -86 l-132 -72 2 -181 3 -181 110 -62 c61 -35 131 -72 156 -84 l46 -22 74 37 c41 21 109 58 152 83 l77 46 0 182 0 182 -153 86 c-85 47 -155 86 -158 85 -2 0 -13 -6 -24 -13z"/>
+                        <path d="M1364 1891 c-17 -11 -36 -34 -43 -52 -8 -23 -11 -254 -11 -796 0 -839 -2 -810 59 -846 39 -23 157 -23 189 -1 31 22 52 66 52 112 0 22 6 44 13 50 6 6 68 12 135 14 122 3 124 3 149 32 24 28 25 34 21 133 -4 135 -12 143 -133 143 -105 0 -115 8 -115 94 0 39 5 67 13 74 6 5 52 12 100 14 126 6 132 14 132 159 0 148 -1 149 -169 149 -82 0 -126 4 -134 12 -9 9 -12 95 -12 327 0 298 -1 318 -20 349 -25 40 -54 52 -133 52 -43 0 -71 -6 -93 -19z"/>
+                    </g>
+                </svg>
+                <span class="logo-text">KeyMate</span>
+            </div>
+            <div class="network-status">
+                <span class="status-dot"></span>
+                <span>Connexion stable • WiFi</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Upload Zone -->
+        <div class="upload-zone">
+            <div class="upload-header">
+                <h2 class="upload-title">📤 Upload de nouveaux fichiers</h2>
+                <span style="font-size: 14px; color: var(--text-gray);">Formats acceptés : MP4/MOV + BIN</span>
+            </div>
+            <div class="upload-area" onclick="triggerUpload()">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Glissez vos fichiers ici ou cliquez pour parcourir</div>
+                <div class="upload-subtext">Vidéo (max 1GB) + Fichier de profondeur (max 500MB)</div>
+            </div>
+        </div>
+
+        <!-- Queue Stats -->
+        <div class="queue-stats">
+            <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">En attente</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1</div>
+                <div class="stat-label">En traitement</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">24</div>
+                <div class="stat-label">Terminés aujourd'hui</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">~18min</div>
+                <div class="stat-label">Temps moyen</div>
+            </div>
+        </div>
+
+        <!-- Queue Actions -->
+        <div class="queue-actions">
+            <div style="font-size: 16px; font-weight: 600; color: var(--primary-blue);">
+                File de traitement 3D
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary">
+                    ⏸️ Tout mettre en pause
+                </button>
+                <button class="btn btn-primary">
+                    🔄 Actualiser
+                </button>
+            </div>
+        </div>
+
+        <!-- Processing List -->
+        <div class="processing-list">
+            <!-- Item 1: Uploading -->
+            <div class="processing-item uploading">
+                <div class="item-header" onclick="toggleDetails(this)">
+                    <div class="item-info">
+                        <div class="item-title">Villa moderne - Antibes</div>
+                        <div class="item-status">
+                            <span class="spinner"></span>
+                            <span>Upload en cours</span>
+                        </div>
+                    </div>
+                    <div class="item-meta">
+                        <span>📍 Antibes</span>
+                        <span>📐 180 m²</span>
+                        <span>📁 847 MB</span>
+                        <span>🕐 Démarré il y a 3 min</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span>Progression de l'upload</span>
+                        <span><strong>67%</strong> • 3 min restantes</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 67%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 2: Processing -->
+            <div class="processing-item processing">
+                <div class="item-header" onclick="toggleDetails(this)">
+                    <div class="item-info">
+                        <div class="item-title">Appartement T4 - Nice Centre</div>
+                        <div class="item-status">
+                            <span class="spinner"></span>
+                            <span>Reconstruction 3D</span>
+                        </div>
+                    </div>
+                    <div class="item-meta">
+                        <span>📍 Nice</span>
+                        <span>📐 95 m²</span>
+                        <span>⏱️ Étape 3/5</span>
+                        <span>🕐 45% complété</span>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot completed">✓</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Upload terminé</div>
+                            <div class="timeline-time">Il y a 15 minutes</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot completed">✓</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Validation réussie</div>
+                            <div class="timeline-time">Il y a 12 minutes</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot active">⚡</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Génération du maillage</div>
+                            <div class="timeline-time">En cours...</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot">⏳</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Mapping des textures</div>
+                            <div class="timeline-time">En attente</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot">⏳</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Optimisation web</div>
+                            <div class="timeline-time">En attente</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 3: Completed -->
+            <div class="processing-item completed">
+                <div class="item-header">
+                    <div class="item-info">
+                        <div class="item-title">Penthouse vue mer - Cannes</div>
+                        <div class="item-status" style="background-color: rgba(16, 185, 129, 0.1); color: var(--success);">
+                            ✅ Terminé
+                        </div>
+                    </div>
+                    <div class="item-meta">
+                        <span>📍 Cannes</span>
+                        <span>📐 220 m²</span>
+                        <span>✨ Score qualité: 92/100</span>
+                        <span>⏱️ Durée: 22 min</span>
+                    </div>
+                </div>
+                <div style="padding: 0 24px 20px; display: flex; gap: 8px;">
+                    <button class="btn btn-primary" style="flex: 1;">
+                        👁️ Voir la visite 3D
+                    </button>
+                    <button class="btn btn-secondary">
+                        🔗 Partager
+                    </button>
+                    <button class="btn btn-secondary">
+                        📱 QR Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- Item 4: Error -->
+            <div class="processing-item error">
+                <div class="item-header">
+                    <div class="item-info">
+                        <div class="item-title">Studio étudiant - Sophia Antipolis</div>
+                        <div class="item-status" style="background-color: rgba(239, 68, 68, 0.1); color: var(--error);">
+                            ❌ Échec validation
+                        </div>
+                    </div>
+                    <div class="item-meta">
+                        <span>📍 Sophia Antipolis</span>
+                        <span>📐 25 m²</span>
+                        <span>⚠️ Qualité insuffisante</span>
+                    </div>
+                </div>
+                <div style="padding: 0 24px 20px;">
+                    <div style="background-color: rgba(239, 68, 68, 0.05); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                        <p style="color: var(--error); font-weight: 600; margin-bottom: 8px;">
+                            Problème détecté : Frames insuffisantes
+                        </p>
+                        <p style="font-size: 14px; color: var(--text-gray); margin-bottom: 0;">
+                            Le scan ne contient que 42% des frames nécessaires. Assurez-vous de scanner lentement et de couvrir tous les angles.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary">
+                            🔄 Réessayer
+                        </button>
+                        <button class="btn btn-secondary">
+                            📤 Upload nouveau scan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 5: Queued -->
+            <div class="processing-item validating">
+                <div class="item-header">
+                    <div class="item-info">
+                        <div class="item-title">Maison familiale - Valbonne</div>
+                        <div class="item-status">
+                            ⏳ En file d'attente • Position #2
+                        </div>
+                    </div>
+                    <div class="item-meta">
+                        <span>📍 Valbonne</span>
+                        <span>📐 145 m²</span>
+                        <span>📁 1.1 GB</span>
+                        <span>⏱️ ~15 min d'attente</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-header">
+            <span class="notification-icon">🎉</span>
+            <h3 class="notification-title">Visite 3D prête !</h3>
+        </div>
+        <p class="notification-message">
+            La reconstruction 3D de "Appartement T4 - Nice Centre" est terminée avec succès.
+        </p>
+        <div class="notification-actions">
+            <button class="btn btn-secondary" onclick="hideNotification()">Plus tard</button>
+            <button class="btn btn-primary" onclick="viewTour()">Voir maintenant</button>
+        </div>
+    </div>
+
+    <script>
+        // Drag and drop
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragging');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragging');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragging');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function triggerUpload() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.multiple = true;
+            input.accept = 'video/mp4,video/quicktime,.bin';
+            input.onchange = (e) => handleFiles(e.target.files);
+            input.click();
+        }
+
+        function handleFiles(files) {
+            console.log('Files selected:', files);
+            // Validation logic here
+            alert('Upload démarré pour ' + files.length + ' fichier(s)');
+        }
+
+        function toggleDetails(element) {
+            const item = element.parentElement;
+            const timeline = item.querySelector('.timeline');
+            if (timeline) {
+                timeline.style.display = timeline.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function showNotification() {
+            document.getElementById('notification').classList.add('show');
+            setTimeout(hideNotification, 8000);
+        }
+
+        function hideNotification() {
+            document.getElementById('notification').classList.remove('show');
+        }
+
+        function viewTour() {
+            hideNotification();
+            alert('Ouverture de la visite 3D...');
+        }
+
+        // Simulate progress
+        setTimeout(() => {
+            const progressFill = document.querySelector('.progress-fill');
+            if (progressFill) {
+                let progress = 67;
+                setInterval(() => {
+                    if (progress < 100) {
+                        progress += Math.random() * 5;
+                        progress = Math.min(progress, 100);
+                        progressFill.style.width = progress + '%';
+                        
+                        if (progress === 100) {
+                            setTimeout(showNotification, 2000);
+                        }
+                    }
+                }, 3000);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
