@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KeyMate - Capture 3D</title>
+    <style>
+        :root {
+            --primary-blue: #3C4553;
+            --bg-beige: #FAF5EF;
+            --accent-yellow: #FFC107;
+            --text-gray: #6B7280;
+            --white: #FFFFFF;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --light-gray: #F3F4F6;
+            --border-gray: #E5E7EB;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-beige);
+            color: var(--primary-blue);
+            line-height: 1.6;
+            margin-top: 60px; 
+        }
+
+        /* Top navigation bar */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #3C4553;
+            box-shadow: 0 4px 6px -1px rgba(60, 69, 83, 0.1), 0 2px 4px -1px rgba(60, 69, 83, 0.06);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+
+        .top-nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .top-nav-brand svg {
+            width: 32px;
+            height: 32px;
+            fill: #FFC107;
+        }
+
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .network-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 13px;
+            color: #FFFFFF;
+        }
+
+        .network-icon { display: flex; align-items: center; gap: 2px; }
+        .signal-bar { width: 3px; background: rgba(255,255,255,0.3); border-radius:1px; transition: all 0.3s; }
+        .signal-bar:nth-child(1){height:6px;} .signal-bar:nth-child(2){height:10px;} .signal-bar:nth-child(3){height:14px;} .signal-bar:nth-child(4){height:18px;}
+        .signal-bar.active{background:#10B981;}
+        .connection-type{font-weight:500;}
+
+        .notification-bell { position:relative; cursor:pointer; padding:8px; border-radius:8px; transition: all 0.2s; }
+        .notification-bell:hover{ background: rgba(255,255,255,0.1); }
+        .notification-bell svg{ width:24px; height:24px; }
+        .notification-badge{ position:absolute; top:4px; right:4px; background:#EF4444; color:#FFFFFF; font-size:10px; padding:2px 5px; border-radius:10px; font-weight:600; }
+
+        .top-nav-menu{ display:flex; gap:4px; }
+        .top-nav-item{ display:flex; align-items:center; gap:8px; padding:8px 16px; color:#FFFFFF; text-decoration:none; border-radius:8px; transition: all 0.2s; font-weight:500; background:rgba(255,255,255,0.1); }
+        .top-nav-item:hover{ background: rgba(255,255,255,0.2); transform: translateY(-1px); }
+        .top-nav-item.active{ background:#FFC107; color:#3C4553; }
+
+        .power-button{ width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; cursor:pointer; transition: all 0.3s ease; position:relative; }
+        .power-button::before{ content:''; position:absolute; top:2px; right:2px; width:8px; height:8px; border-radius:50%; background:#10B981; box-shadow:0 0 6px #10B981; animation:pulse 2s infinite; }
+        .power-button:hover{ background:rgba(239,68,68,0.2); border-color:#EF4444; transform:scale(1.1); }
+        .power-button:hover::before{ background:#EF4444; box-shadow:0 0 8px #EF4444; }
+        @keyframes pulse{ 0%{opacity:1;}50%{opacity:0.6;}100%{opacity:1;} }
+        @media (max-width:768px){ .top-nav{padding:0 16px;} .top-nav-brand span{display:none;} .top-nav-item span:not(:first-child){display:none;} .network-status .connection-type{display:none;} .top-nav-right{gap:12px;} }
+
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo svg {
+            height: 40px;
+            width: auto;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background-color: var(--white);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 20px rgba(60, 69, 83, 0.08);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-step::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background-color: var(--border-gray);
+            z-index: -1;
+        }
+
+        .progress-step:last-child::before {
+            display: none;
+        }
+
+        .progress-step.active::before {
+            background-color: var(--accent-yellow);
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            border: 2px solid var(--border-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active .step-circle {
+            background-color: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            color: var(--primary-blue);
+        }
+
+        .progress-step.completed .step-circle {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: var(--white);
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .progress-step.active .step-label {
+            color: var(--primary-blue);
+            font-weight: 500;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(60, 69, 83, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .icon-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .icon-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .icon-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .card-subtitle {
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+
+        /* Device Check */
+        .device-status {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .device-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+
+        .device-model {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .compatibility-list {
+            text-align: left;
+            max-width: 400px;
+            margin: 24px auto;
+        }
+
+        .compatibility-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .compatibility-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            margin-bottom: 12px;
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item:hover {
+            background-color: var(--border-gray);
+        }
+
+        .checklist-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 6px;
+            margin-right: 16px;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item.checked .checklist-checkbox {
+            background-color: var(--success);
+            border-color: var(--success);
+        }
+
+        .checklist-item.checked .checklist-checkbox::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--white);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .checklist-content {
+            flex: 1;
+        }
+
+        .checklist-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .checklist-desc {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-blue);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--white);
+            color: var(--primary-blue);
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-yellow);
+        }
+
+        /* Capture Mode Selection */
+        .capture-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .capture-mode {
+            padding: 20px;
+            border: 2px solid var(--border-gray);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .capture-mode:hover {
+            border-color: var(--accent-yellow);
+        }
+
+        .capture-mode.selected {
+            background-color: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+        }
+
+        .capture-mode-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .capture-mode-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .capture-mode-desc {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* AR Capture View */
+        .ar-capture-container {
+            background-color: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            height: 500px;
+            margin-bottom: 24px;
+        }
+
+        .ar-view {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #1a1a1a 25%, #2a2a2a 25%, #2a2a2a 50%, #1a1a1a 50%, #1a1a1a 75%, #2a2a2a 75%, #2a2a2a);
+            background-size: 20px 20px;
+            position: relative;
+            animation: camera-move 20s linear infinite;
+        }
+
+        @keyframes camera-move {
+            0% { background-position: 0 0; }
+            100% { background-position: 100px 100px; }
+        }
+
+        .ar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .ar-grid {
+            position: absolute;
+            top: 20%;
+            left: 10%;
+            right: 10%;
+            bottom: 20%;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 2px;
+        }
+
+        .ar-cell {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .ar-cell.scanned {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: rgba(16, 185, 129, 0.8);
+        }
+
+        .capture-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .capture-stats {
+            display: flex;
+            gap: 32px;
+            color: var(--white);
+        }
+
+        .capture-stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .capture-button {
+            width: 70px;
+            height: 70px;
+            background: var(--white);
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .capture-button:active {
+            transform: scale(0.95);
+        }
+
+        .capture-button.recording {
+            background: var(--error);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Quality Score */
+        .quality-score {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .score-circle {
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+
+        .score-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-progress {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+        }
+
+        .score-bg {
+            stroke: var(--border-gray);
+        }
+
+        .score-fill {
+            stroke: var(--success);
+            stroke-dasharray: 465;
+            stroke-dashoffset: 58;
+            transition: stroke-dashoffset 1s ease-out;
+        }
+
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .quality-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .quality-item {
+            padding: 20px;
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .quality-label {
+            font-size: 14px;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+        }
+
+        .quality-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .quality-good {
+            color: var(--success);
+        }
+
+        .quality-warning {
+            color: var(--warning);
+        }
+
+        .quality-error {
+            color: var(--error);
+        }
+
+        /* File Options */
+        .file-options {
+            display: grid;
+            gap: 16px;
+        }
+
+        .file-option {
+            padding: 24px;
+            border: 2px solid var(--border-gray);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .file-option:hover {
+            border-color: var(--accent-yellow);
+        }
+
+        .file-option.selected {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-color: var(--accent-yellow);
+        }
+
+        .file-option-icon {
+            font-size: 32px;
+            width: 60px;
+            text-align: center;
+        }
+
+        .file-option-content {
+            flex: 1;
+        }
+
+        .file-option-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .file-option-desc {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-yellow);
+            color: var(--primary-blue);
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background-color: #FFB300;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background-color: var(--border-gray);
+            color: var(--text-gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--primary-blue);
+        }
+
+        .alert-icon {
+            font-size: 24px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-gray);
+            border-top-color: var(--accent-yellow);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Success State */
+        .success-message {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            color: var(--success);
+            margin-bottom: 24px;
+        }
+
+        .success-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .success-desc {
+            font-size: 18px;
+            color: var(--text-gray);
+            margin-bottom: 32px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .card {
+                padding: 24px 20px;
+            }
+
+            .progress-steps {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .progress-step::before {
+                display: none;
+            }
+
+            .capture-modes {
+                grid-template-columns: 1fr;
+            }
+
+            .quality-details {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .capture-stats {
+                gap: 16px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="top-nav">
+        <a href="#" class="top-nav-brand">
+            <svg viewBox="0 0 296 427" xmlns="http://www.w3.org/2000/svg">
+                <g fill="currentColor" transform="translate(0,427) scale(0.1,-0.1)">
+                    <path d="M1391 3921 c-32 -20 -1064 -1059 -1079 -1086 -15 -27 -17 -93 -20 -645 -2 -431 0 -626 8 -653 7 -25 22 -45 43 -57 30 -19 53 -20 363 -20 407 0 377 -11 382 143 4 99 3 105 -21 133 l-25 29 -208 3 c-128 2 -213 7 -221 14 -10 8 -13 107 -13 461 l0 451 417 418 c230 230 425 418 433 418 8 0 203 -188 433 -418 l417 -418 0 -442 c0 -287 -4 -450 -10 -463 -10 -18 -23 -19 -225 -19 l-214 0 -20 -26 c-18 -23 -21 -41 -21 -135 0 -162 -33 -149 378 -149 319 0 339 1 370 20 18 11 37 32 42 46 7 16 10 262 10 651 -1 593 -2 627 -20 661 -10 21 -114 131 -232 247 -117 115 -357 353 -533 527 l-321 318 -49 0 c-28 0 -56 -4 -64 -9z"/>
+                    <path d="M1425 2756 c-11 -7 -80 -46 -153 -86 l-132 -72 2 -181 3 -181 110 -62 c61 -35 131 -72 156 -84 l46 -22 74 37 c41 21 109 58 152 83 l77 46 0 182 0 182 -153 86 c-85 47 -155 86 -158 85 -2 0 -13 -6 -24 -13z"/>
+                    <path d="M1364 1891 c-17 -11 -36 -34 -43 -52 -8 -23 -11 -254 -11 -796 0 -839 -2 -810 59 -846 39 -23 157 -23 189 -1 31 22 52 66 52 112 0 22 6 44 13 50 6 6 68 12 135 14 122 3 124 3 149 32 24 28 25 34 21 133 -4 135 -12 143 -133 143 -105 0 -115 8 -115 94 0 39 5 67 13 74 6 5 52 12 100 14 126 6 132 14 132 159 0 148 -1 149 -169 149 -82 0 -126 4 -134 12 -9 9 -12 95 -12 327 0 298 -1 318 -20 349 -25 40 -54 52 -133 52 -43 0 -71 -6 -93 -19z"/>
+                </g>
+            </svg>
+            <span>KeyMate</span>
+        </a>
+        <div class="top-nav-right">
+            <div class="network-status">
+                <div class="network-icon">
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar"></span>
+                </div>
+                <span class="connection-type">WiFi</span>
+            </div>
+            <div class="notification-bell" onclick="showNotifications()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="top-nav-menu">
+                <a href="#" class="top-nav-item active" onclick="navigateToSection('properties')"><span>🏠</span><span>Mes Biens</span></a>
+                <a href="#" class="top-nav-item" onclick="navigateToSection('analytics')"><span>📊</span><span>Analytics</span></a>
+                <a href="#" class="top-nav-item" onclick="navigateToSection('profile')"><span>👤</span><span>Profil</span></a>
+            </div>
+            <button class="power-button" onclick="logout()" title="Se déconnecter"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg></button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Compatibilité</div>
+                </div>
+                <div class="progress-step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Préparation</div>
+                </div>
+                <div class="progress-step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Capture</div>
+                </div>
+                <div class="progress-step" id="step4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Validation</div>
+                </div>
+                <div class="progress-step" id="step5">
+                    <div class="step-circle">5</div>
+                    <div class="step-label">Export</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Device Check -->
+        <div class="content-section active" id="section-device">
+            <div class="card">
+                <div class="device-status">
+                    <div class="device-icon">📱</div>
+                    <h2 class="device-model">Vérification en cours...</h2>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Compatible -->
+            <div class="card" style="display: none;" id="device-compatible">
+                <div class="card-header">
+                    <div class="card-icon icon-success">✅</div>
+                    <div>
+                        <h2 class="card-title">iPhone compatible</h2>
+                        <p class="card-subtitle">Votre iPhone 14 Pro dispose du LiDAR. Qualité optimale garantie!</p>
+                    </div>
+                </div>
+                <div class="compatibility-list">
+                    <div class="compatibility-item">
+                        <span>✅</span>
+                        <span>Scanner LiDAR détecté</span>
+                    </div>
+                    <div class="compatibility-item">
+                        <span>✅</span>
+                        <span>Processeur A16 Bionic</span>
+                    </div>
+                    <div class="compatibility-item">
+                        <span>✅</span>
+                        <span>iOS 17.2 compatible</span>
+                    </div>
+                    <div class="compatibility-item">
+                        <span>✅</span>
+                        <span>4.2 GB d'espace disponible</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="goToStep(2)">Continuer</button>
+                </div>
+            </div>
+
+            <!-- Device Limited -->
+            <div class="card" style="display: none;" id="device-limited">
+                <div class="card-header">
+                    <div class="card-icon icon-warning">⚠️</div>
+                    <div>
+                        <h2 class="card-title">Compatibilité limitée</h2>
+                        <p class="card-subtitle">Sans LiDAR, la capture prendra plus de temps et la qualité sera réduite.</p>
+                    </div>
+                </div>
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <div>
+                        <strong>Mode dégradé activé</strong><br>
+                        Seul le mode "Rapide" sera disponible pour votre device.
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary">En savoir plus</button>
+                    <button class="btn btn-primary" onclick="goToStep(2)">Continuer quand même</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Preparation -->
+        <div class="content-section" id="section-preparation">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-success">📋</div>
+                    <div>
+                        <h2 class="card-title">Checklist avant capture</h2>
+                        <p class="card-subtitle">Préparez votre environnement pour une qualité optimale</p>
+                    </div>
+                </div>
+                
+                <ul class="checklist">
+                    <li class="checklist-item" onclick="toggleCheck(this)">
+                        <div class="checklist-checkbox"></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Éclairage allumé dans toutes les pièces</div>
+                            <div class="checklist-desc">Lumière naturelle + artificielle pour éviter les zones sombres</div>
+                        </div>
+                    </li>
+                    <li class="checklist-item" onclick="toggleCheck(this)">
+                        <div class="checklist-checkbox"></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Portes ouvertes pour circulation</div>
+                            <div class="checklist-desc">Permet une capture fluide sans interruption</div>
+                        </div>
+                    </li>
+                    <li class="checklist-item" onclick="toggleCheck(this)">
+                        <div class="checklist-checkbox"></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Objets personnels rangés</div>
+                            <div class="checklist-desc">Pour une présentation professionnelle du bien</div>
+                        </div>
+                    </li>
+                    <li class="checklist-item" onclick="toggleCheck(this)">
+                        <div class="checklist-checkbox"></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Miroirs couverts (optionnel)</div>
+                            <div class="checklist-desc">Évite les reflets qui peuvent perturber le scan</div>
+                        </div>
+                    </li>
+                    <li class="checklist-item" onclick="toggleCheck(this)">
+                        <div class="checklist-checkbox"></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Animaux en sécurité</div>
+                            <div class="checklist-desc">Pour éviter les mouvements pendant la capture</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">Configuration de capture</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Type de bien</label>
+                    <select class="form-select">
+                        <option>Appartement</option>
+                        <option>Maison</option>
+                        <option>Bureau</option>
+                        <option>Local commercial</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Surface approximative</label>
+                    <select class="form-select">
+                        <option>&lt; 50 m²</option>
+                        <option selected>50-100 m²</option>
+                        <option>100-200 m²</option>
+                        <option>&gt; 200 m²</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mode de capture</label>
+                    <div class="capture-modes">
+                        <div class="capture-mode selected" onclick="selectMode(this)">
+                            <div class="capture-mode-icon">🎯</div>
+                            <div class="capture-mode-title">Qualité</div>
+                            <div class="capture-mode-desc">~10 min • Recommandé</div>
+                        </div>
+                        <div class="capture-mode" onclick="selectMode(this)">
+                            <div class="capture-mode-icon">⚡</div>
+                            <div class="capture-mode-title">Rapide</div>
+                            <div class="capture-mode-desc">~5 min • Aperçu</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToStep(1)">Retour</button>
+                    <button class="btn btn-primary" id="startCaptureBtn" onclick="goToStep(3)">Commencer la capture</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Capture -->
+        <div class="content-section" id="section-capture">
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div class="ar-capture-container">
+                    <div class="ar-view">
+                        <div class="ar-overlay">
+                            <div class="ar-grid" id="arGrid"></div>
+                        </div>
+                    </div>
+                    <div class="capture-controls">
+                        <div class="capture-stats">
+                            <div class="capture-stat">
+                                <span class="stat-value" id="coveragePercent">0%</span>
+                                <span class="stat-label">Couverture</span>
+                            </div>
+                            <div class="capture-stat">
+                                <span class="stat-value" id="captureTime">0:00</span>
+                                <span class="stat-label">Durée</span>
+                            </div>
+                            <div class="capture-stat">
+                                <span class="stat-value" id="dataSize">0 MB</span>
+                                <span class="stat-label">Taille</span>
+                            </div>
+                        </div>
+                        <button class="capture-button" id="captureBtn" onclick="toggleCapture()"></button>
+                        <button class="btn btn-secondary" onclick="pauseCapture()">⏸️ Pause</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning" id="speedAlert" style="display: none;">
+                <span class="alert-icon">⚠️</span>
+                <div>
+                    <strong>Ralentissez</strong><br>
+                    Déplacez-vous plus lentement pour une meilleure qualité
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Validation -->
+        <div class="content-section" id="section-validation">
+            <div class="card">
+                <div class="quality-score">
+                    <div class="score-circle">
+                        <svg width="160" height="160">
+                            <circle cx="80" cy="80" r="74" class="score-progress score-bg"></circle>
+                            <circle cx="80" cy="80" r="74" class="score-progress score-fill"></circle>
+                        </svg>
+                        <div class="score-value">87</div>
+                    </div>
+                    <h2 class="card-title">Score de qualité</h2>
+                    <p class="card-subtitle quality-good">Excellent</p>
+                </div>
+
+                <div class="quality-details">
+                    <div class="quality-item">
+                        <div class="quality-label">Couverture</div>
+                        <div class="quality-value quality-good">96%</div>
+                    </div>
+                    <div class="quality-item">
+                        <div class="quality-label">Stabilité</div>
+                        <div class="quality-value quality-good">92%</div>
+                    </div>
+                    <div class="quality-item">
+                        <div class="quality-label">Éclairage</div>
+                        <div class="quality-value quality-warning">78%</div>
+                    </div>
+                    <div class="quality-item">
+                        <div class="quality-label">Netteté</div>
+                        <div class="quality-value quality-good">88%</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToStep(3)">Recapturer zones manquées</button>
+                    <button class="btn btn-primary" onclick="goToStep(5)">Accepter et continuer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Export -->
+        <div class="content-section" id="section-export">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon icon-success">💾</div>
+                    <div>
+                        <h2 class="card-title">Que faire de votre scan?</h2>
+                        <p class="card-subtitle">Taille estimée: 487 MB • Connexion: WiFi (rapide)</p>
+                    </div>
+                </div>
+
+                <div class="file-options">
+                    <div class="file-option selected" onclick="selectOption(this)">
+                        <div class="file-option-icon">☁️</div>
+                        <div class="file-option-content">
+                            <div class="file-option-title">Traiter maintenant</div>
+                            <div class="file-option-desc">Upload vers le cloud et traitement immédiat (~5 minutes)</div>
+                        </div>
+                    </div>
+                    <div class="file-option" onclick="selectOption(this)">
+                        <div class="file-option-icon">💾</div>
+                        <div class="file-option-content">
+                            <div class="file-option-title">Sauvegarder localement</div>
+                            <div class="file-option-desc">Pour upload ultérieur depuis l'app ou le web</div>
+                        </div>
+                    </div>
+                    <div class="file-option" onclick="selectOption(this)">
+                        <div class="file-option-icon">🔄</div>
+                        <div class="file-option-content">
+                            <div class="file-option-title">Les deux</div>
+                            <div class="file-option-desc">Sauvegarde locale + traitement cloud</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToStep(4)">Retour</button>
+                    <button class="btn btn-primary" onclick="processFiles()">Continuer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div class="content-section" id="section-success">
+            <div class="card">
+                <div class="success-message">
+                    <div class="success-icon">🎉</div>
+                    <h2 class="success-title">Upload en cours!</h2>
+                    <p class="success-desc">
+                        Votre scan est en cours d'upload.<br>
+                        Vous recevrez une notification quand la visite 3D sera prête.
+                    </p>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="location.reload()">Nouveau scan</button>
+                        <button class="btn btn-secondary">Voir mes scans</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let capturing = false;
+        let captureTimer = null;
+        let captureSeconds = 0;
+        let coverage = 0;
+        let dataSize = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate device check
+            setTimeout(() => {
+                document.querySelector('.device-status').style.display = 'none';
+                document.getElementById('device-compatible').style.display = 'block';
+            }, 2000);
+
+            // Initialize AR grid
+            initARGrid();
+        });
+
+        function initARGrid() {
+            const grid = document.getElementById('arGrid');
+            for (let i = 0; i < 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'ar-cell';
+                grid.appendChild(cell);
+            }
+        }
+
+        function goToStep(step) {
+            // Update progress
+            document.querySelectorAll('.progress-step').forEach((el, index) => {
+                if (index < step) {
+                    el.classList.add('completed');
+                    el.classList.remove('active');
+                } else if (index === step - 1) {
+                    el.classList.add('active');
+                    el.classList.remove('completed');
+                } else {
+                    el.classList.remove('active', 'completed');
+                }
+            });
+
+            // Update sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            const sections = ['device', 'preparation', 'capture', 'validation', 'export'];
+            document.getElementById(`section-${sections[step - 1]}`).classList.add('active');
+        }
+
+        function toggleCheck(item) {
+            item.classList.toggle('checked');
+            updateStartButton();
+        }
+
+        function updateStartButton() {
+            const allChecked = document.querySelectorAll('.checklist-item').length === 
+                             document.querySelectorAll('.checklist-item.checked').length;
+            document.getElementById('startCaptureBtn').disabled = !allChecked;
+        }
+
+        function selectMode(element) {
+            document.querySelectorAll('.capture-mode').forEach(mode => {
+                mode.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+
+        function selectOption(element) {
+            document.querySelectorAll('.file-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+
+        function toggleCapture() {
+            const btn = document.getElementById('captureBtn');
+            capturing = !capturing;
+
+            if (capturing) {
+                btn.classList.add('recording');
+                startCapture();
+            } else {
+                btn.classList.remove('recording');
+                stopCapture();
+            }
+        }
+
+        function startCapture() {
+            captureSeconds = 0;
+            coverage = 0;
+            dataSize = 0;
+
+            captureTimer = setInterval(() => {
+                captureSeconds++;
+                
+                // Update time
+                const minutes = Math.floor(captureSeconds / 60);
+                const seconds = captureSeconds % 60;
+                document.getElementById('captureTime').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                // Simulate coverage increase
+                if (coverage < 96) {
+                    coverage += Math.random() * 3;
+                    coverage = Math.min(coverage, 96);
+                    document.getElementById('coveragePercent').textContent = Math.floor(coverage) + '%';
+
+                    // Update AR grid
+                    const cells = document.querySelectorAll('.ar-cell');
+                    const scannedCount = Math.floor((coverage / 100) * cells.length);
+                    for (let i = 0; i < scannedCount; i++) {
+                        cells[i].classList.add('scanned');
+                    }
+                }
+
+                // Simulate data size
+                dataSize += Math.random() * 5;
+                document.getElementById('dataSize').textContent = Math.floor(dataSize) + ' MB';
+
+                // Show random alerts
+                if (Math.random() < 0.05) {
+                    showSpeedAlert();
+                }
+            }, 1000);
+        }
+
+        function stopCapture() {
+            clearInterval(captureTimer);
+            setTimeout(() => {
+                goToStep(4);
+            }, 500);
+        }
+
+        function pauseCapture() {
+            if (capturing) {
+                toggleCapture();
+            }
+        }
+
+        function showSpeedAlert() {
+            const alert = document.getElementById('speedAlert');
+            alert.style.display = 'flex';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        function processFiles() {
+            document.getElementById('section-export').classList.remove('active');
+            document.getElementById('section-success').classList.add('active');
+            
+            // Update progress to complete
+            document.querySelectorAll('.progress-step').forEach(step => {
+                step.classList.add('completed');
+                step.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html>

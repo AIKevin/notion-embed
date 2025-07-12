@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KeyMate - Mon Profil</title>
+    <style>
+        :root {
+            --primary-blue: #3C4553;
+            --bg-beige: #FAF5EF;
+            --accent-yellow: #FFC107;
+            --text-gray: #6B7280;
+            --error-red: #EF4444;
+            --success-green: #10B981;
+            --white: #FFFFFF;
+            --light-gray: #F3F4F6;
+            --border-gray: #E5E7EB;
+            --shadow: 0 10px 25px rgba(60, 69, 83, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: var(--bg-beige);
+            color: var(--primary-blue);
+            line-height: 1.6;
+            min-height: 100vh;
+            margin-top: 60px; /
+        }
+
+        /* Top navigation bar */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #3C4553;
+            box-shadow: 0 4px 6px -1px rgba(60, 69, 83, 0.1), 0 2px 4px -1px rgba(60, 69, 83, 0.06);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+
+        .top-nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .top-nav-brand svg {
+            width: 32px;
+            height: 32px;
+            fill: #FFC107;
+        }
+
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .network-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 13px;
+            color: #FFFFFF;
+        }
+
+        .network-icon { display: flex; align-items: center; gap: 2px; }
+        .signal-bar { width: 3px; background: rgba(255,255,255,0.3); border-radius:1px; transition: all 0.3s; }
+        .signal-bar:nth-child(1){height:6px;} .signal-bar:nth-child(2){height:10px;} .signal-bar:nth-child(3){height:14px;} .signal-bar:nth-child(4){height:18px;}
+        .signal-bar.active{background:#10B981;}
+        .connection-type{font-weight:500;}
+
+        .notification-bell { position:relative; cursor:pointer; padding:8px; border-radius:8px; transition: all 0.2s; }
+        .notification-bell:hover{ background: rgba(255,255,255,0.1); }
+        .notification-bell svg{ width:24px; height:24px; }
+        .notification-badge{ position:absolute; top:4px; right:4px; background:#EF4444; color:#FFFFFF; font-size:10px; padding:2px 5px; border-radius:10px; font-weight:600; }
+
+        .top-nav-menu{ display:flex; gap:4px; }
+        .top-nav-item{ display:flex; align-items:center; gap:8px; padding:8px 16px; color:#FFFFFF; text-decoration:none; border-radius:8px; transition: all 0.2s; font-weight:500; background:rgba(255,255,255,0.1); }
+        .top-nav-item:hover{ background: rgba(255,255,255,0.2); transform: translateY(-1px); }
+        .top-nav-item.active{ background:#FFC107; color:#3C4553; }
+
+        .power-button{ width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; cursor:pointer; transition: all 0.3s ease; position:relative; }
+        .power-button::before{ content:''; position:absolute; top:2px; right:2px; width:8px; height:8px; border-radius:50%; background:#10B981; box-shadow:0 0 6px #10B981; animation:pulse 2s infinite; }
+        .power-button:hover{ background:rgba(239,68,68,0.2); border-color:#EF4444; transform:scale(1.1); }
+        .power-button:hover::before{ background:#EF4444; box-shadow:0 0 8px #EF4444; }
+        @keyframes pulse{ 0%{opacity:1;}50%{opacity:0.6;}100%{opacity:1;} }
+        @media (max-width:768px){ .top-nav{padding:0 16px;} .top-nav-brand span{display:none;} .top-nav-item span:not(:first-child){display:none;} .network-status .connection-type{display:none;} .top-nav-right{gap:12px;} }
+
+
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .profile-summary {
+            text-align: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            margin: 0 auto 16px;
+            overflow: hidden;
+            border: 4px solid var(--border-gray);
+            position: relative;
+        }
+
+        .avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-completeness {
+            margin-top: 16px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .completeness-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-gray);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .completeness-fill {
+            height: 100%;
+            background-color: var(--success-green);
+            width: 75%;
+            transition: width 0.3s ease;
+        }
+
+        .nav-menu {
+            margin-top: 24px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-gray);
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background-color: var(--light-gray);
+            color: var(--primary-blue);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-yellow);
+            color: var(--primary-blue);
+            font-weight: 500;
+        }
+
+        .nav-item svg {
+            margin-right: 12px;
+        }
+
+        /* Content Area */
+        .content {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .content-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .content-subtitle {
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+
+        /* Forms */
+        .form-section {
+            margin-bottom: 40px;
+        }
+
+        .form-section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: var(--primary-blue);
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .required {
+            color: var(--error-red);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: var(--white);
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(60, 69, 83, 0.1);
+        }
+
+        input.error {
+            border-color: var(--error-red);
+        }
+
+        input.success {
+            border-color: var(--success-green);
+        }
+
+        .field-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .error-message {
+            color: var(--error-red);
+            font-size: 13px;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--success-green);
+            font-size: 13px;
+            display: none;
+        }
+
+        .char-count {
+            color: var(--text-gray);
+            font-size: 13px;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* Avatar Upload */
+        .avatar-upload-section {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            padding: 24px;
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            margin-bottom: 32px;
+        }
+
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: var(--white);
+            border: 3px solid var(--border-gray);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-gray);
+        }
+
+        .avatar-upload-info h3 {
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        .avatar-upload-info p {
+            color: var(--text-gray);
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-yellow);
+            color: var(--primary-blue);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background-color: transparent;
+            color: var(--error-red);
+            border: 2px solid var(--error-red);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--error-red);
+            color: var(--white);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-verified {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        /* History Section */
+        .history-timeline {
+            position: relative;
+            padding-left: 32px;
+        }
+
+        .history-timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--border-gray);
+        }
+
+        .history-item {
+            position: relative;
+            padding-bottom: 24px;
+        }
+
+        .history-item::before {
+            content: '';
+            position: absolute;
+            left: -28px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--primary-blue);
+            border: 3px solid var(--white);
+            box-shadow: 0 0 0 2px var(--border-gray);
+        }
+
+        .history-date {
+            color: var(--text-gray);
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .history-content {
+            background-color: var(--light-gray);
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .history-field {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .history-values {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+            font-size: 14px;
+        }
+
+        .history-old {
+            color: var(--text-gray);
+            text-decoration: line-through;
+        }
+
+        .history-new {
+            color: var(--success-green);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-info {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+            border: 1px solid #93C5FD;
+        }
+
+        .alert-warning {
+            background-color: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FDE68A;
+        }
+
+        .alert-success {
+            background-color: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .avatar-upload-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .content {
+                padding: 24px 16px;
+            }
+        }
+
+        /* Loading state */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-gray);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary-blue);
+        }
+
+        .tab.active {
+            color: var(--primary-blue);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--accent-yellow);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+     <!-- Top Navigation Bar -->
+<nav class="top-nav">
+        <a href="#" class="top-nav-brand">
+            <svg viewBox="0 0 296 427" xmlns="http://www.w3.org/2000/svg">
+                <g fill="currentColor" transform="translate(0,427) scale(0.1,-0.1)">
+                    <path d="M1391 3921 c-32 -20 -1064 -1059 -1079 -1086 -15 -27 -17 -93 -20 -645 -2 -431 0 -626 8 -653 7 -25 22 -45 43 -57 30 -19 53 -20 363 -20 407 0 377 -11 382 143 4 99 3 105 -21 133 l-25 29 -208 3 c-128 2 -213 7 -221 14 -10 8 -13 107 -13 461 l0 451 417 418 c230 230 425 418 433 418 8 0 203 -188 433 -418 l417 -418 0 -442 c0 -287 -4 -450 -10 -463 -10 -18 -23 -19 -225 -19 l-214 0 -20 -26 c-18 -23 -21 -41 -21 -135 0 -162 -33 -149 378 -149 319 0 339 1 370 20 18 11 37 32 42 46 7 16 10 262 10 651 -1 593 -2 627 -20 661 -10 21 -114 131 -232 247 -117 115 -357 353 -533 527 l-321 318 -49 0 c-28 0 -56 -4 -64 -9z"/>
+                    <path d="M1425 2756 c-11 -7 -80 -46 -153 -86 l-132 -72 2 -181 3 -181 110 -62 c61 -35 131 -72 156 -84 l46 -22 74 37 c41 21 109 58 152 83 l77 46 0 182 0 182 -153 86 c-85 47 -155 86 -158 85 -2 0 -13 -6 -24 -13z"/>
+                    <path d="M1364 1891 c-17 -11 -36 -34 -43 -52 -8 -23 -11 -254 -11 -796 0 -839 -2 -810 59 -846 39 -23 157 -23 189 -1 31 22 52 66 52 112 0 22 6 44 13 50 6 6 68 12 135 14 122 3 124 3 149 32 24 28 25 34 21 133 -4 135 -12 143 -133 143 -105 0 -115 8 -115 94 0 39 5 67 13 74 6 5 52 12 100 14 126 6 132 14 132 159 0 148 -1 149 -169 149 -82 0 -126 4 -134 12 -9 9 -12 95 -12 327 0 298 -1 318 -20 349 -25 40 -54 52 -133 52 -43 0 -71 -6 -93 -19z"/>
+                </g>
+            </svg>
+            <span>KeyMate</span>
+        </a>
+        <div class="top-nav-right">
+            <div class="network-status">
+                <div class="network-icon">
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar"></span>
+                </div>
+                <span class="connection-type">WiFi</span>
+            </div>
+            <div class="notification-bell" onclick="showNotifications()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="top-nav-menu">
+                <a href="#" class="top-nav-item active" onclick="navigateToSection('properties')"><span>🏠</span><span>Mes Biens</span></a>
+                <a href="#" class="top-nav-item" onclick="navigateToSection('analytics')"><span>📊</span><span>Analytics</span></a>
+                <a href="#" class="top-nav-item" onclick="navigateToSection('profile')"><span>👤</span><span>Profil</span></a>
+            </div>
+            <button class="power-button" onclick="logout()" title="Se déconnecter"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg></button>
+        </div>
+    </nav>
+
+
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="profile-summary">
+                <div class="avatar-large" id="sidebarAvatar">
+                    <div class="avatar-placeholder">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5">
+                            <circle cx="12" cy="8" r="3"></circle>
+                            <path d="M20 21a8 8 0 1 0-16 0"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3>Marie-Claire Dupont</h3>
+                <p style="color: var(--text-gray); font-size: 14px;">Agent Commercial</p>
+                <span class="status-badge status-verified">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                        <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                    Compte vérifié
+                </span>
+                
+                <div class="profile-completeness">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; font-weight: 500;">Profil complété</span>
+                        <span style="font-size: 14px; color: var(--success-green); font-weight: 600;">75%</span>
+                    </div>
+                    <div class="completeness-bar">
+                        <div class="completeness-fill"></div>
+                    </div>
+                    <p style="font-size: 12px; color: var(--text-gray); margin-top: 8px;">
+                        Complétez votre biographie pour atteindre 100%
+                    </p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#informations" class="nav-item active" onclick="showSection('informations')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Informations personnelles
+                </a>
+                <a href="#professional" class="nav-item" onclick="showSection('professional')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 7h-9"></path>
+                        <path d="M14 17H5"></path>
+                        <circle cx="17" cy="17" r="3"></circle>
+                        <circle cx="7" cy="7" r="3"></circle>
+                    </svg>
+                    Informations professionnelles
+                </a>
+                <a href="#security" class="nav-item" onclick="showSection('security')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    Sécurité
+                </a>
+                <a href="#history" class="nav-item" onclick="showSection('history')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Historique
+                </a>
+                <a href="#preferences" class="nav-item" onclick="showSection('preferences')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
+                    </svg>
+                    Préférences
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <main class="content" id="mainContent">
+            <!-- Informations personnelles -->
+            <section id="informationsSection" class="tab-content active">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title">Informations personnelles</h1>
+                        <p class="content-subtitle">Gérez vos informations de base et votre photo de profil</p>
+                    </div>
+                </div>
+
+                <!-- Avatar Upload -->
+                <div class="avatar-upload-section">
+                    <div class="avatar-preview" id="avatarPreview">
+                        <div class="avatar-placeholder">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5">
+                                <circle cx="12" cy="8" r="3"></circle>
+                                <path d="M20 21a8 8 0 1 0-16 0"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="avatar-upload-info">
+                        <h3>Photo de profil</h3>
+                        <p>JPG ou PNG. Taille maximale 5MB. Format carré recommandé.</p>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-primary" onclick="document.getElementById('avatarInput').click()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Changer la photo
+                            </button>
+                            <button class="btn btn-secondary" onclick="removeAvatar()">Supprimer</button>
+                        </div>
+                        <input type="file" id="avatarInput" accept="image/jpeg,image/png" style="display: none;" onchange="previewAvatar(event)">
+                    </div>
+                </div>
+
+                <!-- Personal Info Form -->
+                <form id="personalInfoForm">
+                    <div class="form-section">
+                        <h2 class="form-section-title">Identité</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="firstName">Prénom <span class="required">*</span></label>
+                                <input type="text" id="firstName" name="firstName" value="Marie-Claire" required>
+                                <div class="error-message">Minimum 2 caractères</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Nom <span class="required">*</span></label>
+                                <input type="text" id="lastName" name="lastName" value="Dupont" required>
+                                <div class="error-message">Minimum 2 caractères</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2 class="form-section-title">Contact</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="email">Email <span class="required">*</span></label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="email" id="email" name="email" value="marie@agence.fr" required style="flex: 1;">
+                                    <span class="status-badge status-verified">Vérifié</span>
+                                </div>
+                                <div class="field-info">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                    <span style="font-size: 13px; color: var(--text-gray);">Un email de confirmation sera envoyé si vous modifiez cette adresse</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Téléphone</label>
+                                <input type="tel" id="phone" name="phone" value="06 12 34 56 78" placeholder="06 12 34 56 78">
+                                <div class="error-message">Format invalide</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Sauvegarder les modifications
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm('personalInfoForm')">Annuler</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Informations professionnelles -->
+            <section id="professionalSection" class="tab-content">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title">Informations professionnelles</h1>
+                        <p class="content-subtitle">Détails sur votre activité et votre agence</p>
+                    </div>
+                </div>
+
+                <form id="professionalForm">
+                    <div class="form-section">
+                        <h2 class="form-section-title">Agence</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="agencyName">Nom de l'agence <span class="required">*</span></label>
+                                <input type="text" id="agencyName" name="agencyName" value="Agence Immobilière du Centre" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="position">Poste</label>
+                                <select id="position" name="position">
+                                    <option value="agent">Agent commercial</option>
+                                    <option value="negotiator">Négociateur</option>
+                                    <option value="manager">Manager</option>
+                                    <option value="director">Directeur d'agence</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2 class="form-section-title">Spécialisations</h2>
+                        <div class="form-group">
+                            <label for="specialties">Domaines d'expertise</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px;">
+                                <label style="display: flex; align-items: center; font-weight: normal;">
+                                    <input type="checkbox" name="specialties" value="vente" checked style="margin-right: 8px;">
+                                    Vente
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal;">
+                                    <input type="checkbox" name="specialties" value="location" checked style="margin-right: 8px;">
+                                    Location
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal;">
+                                    <input type="checkbox" name="specialties" value="gestion" style="margin-right: 8px;">
+                                    Gestion locative
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal;">
+                                    <input type="checkbox" name="specialties" value="neuf" style="margin-right: 8px;">
+                                    Immobilier neuf
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal;">
+                                    <input type="checkbox" name="specialties" value="commercial" style="margin-right: 8px;">
+                                    Immobilier commercial
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal;">
+                                    <input type="checkbox" name="specialties" value="luxe" style="margin-right: 8px;">
+                                    Immobilier de luxe
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2 class="form-section-title">Présentation</h2>
+                        <div class="form-group">
+                            <label for="bio">Biographie professionnelle</label>
+                            <textarea id="bio" name="bio" placeholder="Présentez-vous en quelques lignes..." onkeyup="updateCharCount(this, 500)">Spécialisée dans l'immobilier résidentiel depuis 2015, j'accompagne mes clients dans leurs projets de vente et d'acquisition sur le secteur de Toulouse et ses environs.</textarea>
+                            <div class="char-count"><span id="bioCount">162</span> / 500 caractères</div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Sauvegarder les modifications
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm('professionalForm')">Annuler</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Sécurité -->
+            <section id="securitySection" class="tab-content">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title">Sécurité</h1>
+                        <p class="content-subtitle">Gérez la sécurité de votre compte et vos sessions actives</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>Dernière connexion : Aujourd'hui à 09:45 depuis Toulouse (IP: 92.xxx.xxx.45)</span>
+                </div>
+
+                <!-- Change Password -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Changer le mot de passe</h2>
+                    <form id="passwordForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="currentPassword">Mot de passe actuel <span class="required">*</span></label>
+                                <input type="password" id="currentPassword" name="currentPassword" required>
+                            </div>
+                            <div style="grid-column: 1 / -1;"></div>
+                            <div class="form-group">
+                                <label for="newPassword">Nouveau mot de passe <span class="required">*</span></label>
+                                <input type="password" id="newPassword" name="newPassword" required>
+                                <div class="field-info">
+                                    <span style="font-size: 13px; color: var(--text-gray);">Min. 8 caractères, 1 majuscule, 1 chiffre</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmNewPassword">Confirmer le nouveau mot de passe <span class="required">*</span></label>
+                                <input type="password" id="confirmNewPassword" name="confirmNewPassword" required>
+                                <div class="error-message">Les mots de passe ne correspondent pas</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Modifier le mot de passe</button>
+                    </form>
+                </div>
+
+                <!-- Active Sessions -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Sessions actives</h2>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="padding: 20px; background-color: var(--light-gray); border-radius: 8px; border: 2px solid var(--success-green);">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h4 style="margin-bottom: 8px;">Chrome - Windows</h4>
+                                    <p style="font-size: 14px; color: var(--text-gray);">Toulouse, France • 92.xxx.xxx.45</p>
+                                    <p style="font-size: 14px; color: var(--success-green); margin-top: 4px;">
+                                        <strong>Session actuelle</strong>
+                                    </p>
+                                </div>
+                                <span style="font-size: 13px; color: var(--text-gray);">Il y a 2 heures</span>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 20px; background-color: var(--light-gray); border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h4 style="margin-bottom: 8px;">Safari - iPhone</h4>
+                                    <p style="font-size: 14px; color: var(--text-gray);">Toulouse, France • 92.xxx.xxx.78</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="font-size: 13px; color: var(--text-gray);">Il y a 3 jours</span>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 14px; margin-top: 8px;">Déconnecter</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-danger" style="margin-top: 24px;" onclick="showModal('logoutAll')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        Se déconnecter de tous les appareils
+                    </button>
+                </div>
+            </section>
+
+            <!-- Historique -->
+            <section id="historySection" class="tab-content">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title">Historique des modifications</h1>
+                        <p class="content-subtitle">Consultez toutes les modifications apportées à votre profil</p>
+                    </div>
+                    <button class="btn btn-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Exporter (CSV)
+                    </button>
+                </div>
+
+                <div class="history-timeline">
+                    <div class="history-item">
+                        <div class="history-date">Aujourd'hui à 14:32</div>
+                        <div class="history-content">
+                            <div class="history-field">Photo de profil</div>
+                            <div class="history-values">
+                                <span class="history-old">Ancienne photo</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                                <span class="history-new">Nouvelle photo uploadée</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-date">15 juin 2024 à 10:15</div>
+                        <div class="history-content">
+                            <div class="history-field">Téléphone</div>
+                            <div class="history-values">
+                                <span class="history-old">06 98 76 54 32</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                                <span class="history-new">06 12 34 56 78</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-date">2 mai 2024 à 16:45</div>
+                        <div class="history-content">
+                            <div class="history-field">Biographie</div>
+                            <div class="history-values">
+                                <span class="history-new">Ajout de la biographie professionnelle</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-date">28 avril 2024 à 09:00</div>
+                        <div class="history-content">
+                            <div class="history-field">Email</div>
+                            <div class="history-values">
+                                <span class="history-old">marie.dupont@gmail.com</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                                <span class="history-new">marie@agence.fr</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-date">15 mars 2024 à 11:30</div>
+                        <div class="history-content">
+                            <div class="history-field">Création du compte</div>
+                            <div class="history-values">
+                                <span style="color: var(--text-gray);">Inscription initiale sur la plateforme</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Préférences -->
+            <section id="preferencesSection" class="tab-content">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title">Préférences</h1>
+                        <p class="content-subtitle">Personnalisez votre expérience sur KeyMate</p>
+                    </div>
+                </div>
+
+                <form id="preferencesForm">
+                    <!-- Notifications -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">Notifications</h2>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <label style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background-color: var(--light-gray); border-radius: 8px; cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 500; margin-bottom: 4px;">Notifications par email</div>
+                                    <div style="font-size: 14px; color: var(--text-gray);">Recevez des mises à jour sur vos biens et visites</div>
+                                </div>
+                                <input type="checkbox" checked style="width: 20px; height: 20px;">
+                            </label>
+                            
+                            <label style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background-color: var(--light-gray); border-radius: 8px; cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 500; margin-bottom: 4px;">Rappels de visites</div>
+                                    <div style="font-size: 14px; color: var(--text-gray);">Notifications 24h et 1h avant vos visites</div>
+                                </div>
+                                <input type="checkbox" checked style="width: 20px; height: 20px;">
+                            </label>
+                            
+                            <label style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background-color: var(--light-gray); border-radius: 8px; cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 500; margin-bottom: 4px;">Newsletter mensuelle</div>
+                                    <div style="font-size: 14px; color: var(--text-gray);">Actualités du marché immobilier et conseils</div>
+                                </div>
+                                <input type="checkbox" style="width: 20px; height: 20px;">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Privacy -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">Confidentialité</h2>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <label style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background-color: var(--light-gray); border-radius: 8px; cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 500; margin-bottom: 4px;">Profil public</div>
+                                    <div style="font-size: 14px; color: var(--text-gray);">Votre profil est visible par les clients potentiels</div>
+                                </div>
+                                <input type="checkbox" checked style="width: 20px; height: 20px;">
+                            </label>
+                            
+                            <label style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background-color: var(--light-gray); border-radius: 8px; cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 500; margin-bottom: 4px;">Afficher le numéro de téléphone</div>
+                                    <div style="font-size: 14px; color: var(--text-gray);">Les clients peuvent voir votre numéro sur vos annonces</div>
+                                </div>
+                                <input type="checkbox" checked style="width: 20px; height: 20px;">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Language & Region -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">Langue et région</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="language">Langue</label>
+                                <select id="language" name="language">
+                                    <option value="fr" selected>Français</option>
+                                    <option value="en">English</option>
+                                    <option value="es">Español</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="timezone">Fuseau horaire</label>
+                                <select id="timezone" name="timezone">
+                                    <option value="Europe/Paris" selected>Paris (UTC+1)</option>
+                                    <option value="Europe/London">Londres (UTC+0)</option>
+                                    <option value="America/New_York">New York (UTC-5)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Sauvegarder les préférences
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="logoutModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Confirmer la déconnexion</h2>
+            <p style="margin: 20px 0; color: var(--text-gray);">Êtes-vous sûr de vouloir vous déconnecter ?</p>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeModal('logout')">Annuler</button>
+                <button class="btn btn-primary" onclick="logout()">Se déconnecter</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="logoutAllModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Déconnexion de tous les appareils</h2>
+            <div class="alert alert-warning" style="margin: 20px 0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Cette action déconnectera toutes vos sessions actives, y compris celle-ci. Vous devrez vous reconnecter.</span>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeModal('logoutAll')">Annuler</button>
+                <button class="btn btn-danger" onclick="logoutAll()">Déconnecter tous les appareils</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        function showSection(sectionName) {
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Update content sections
+            document.querySelectorAll('.tab-content').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionName + 'Section').classList.add('active');
+        }
+
+        // Avatar upload
+        function previewAvatar(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('La photo ne doit pas dépasser 5MB');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgHtml = `<img src="${e.target.result}" alt="Avatar">`;
+                    document.getElementById('avatarPreview').innerHTML = imgHtml;
+                    document.getElementById('sidebarAvatar').innerHTML = imgHtml;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeAvatar() {
+            const placeholder = `
+                <div class="avatar-placeholder">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5">
+                        <circle cx="12" cy="8" r="3"></circle>
+                        <path d="M20 21a8 8 0 1 0-16 0"></path>
+                    </svg>
+                </div>
+            `;
+            document.getElementById('avatarPreview').innerHTML = placeholder;
+            
+            const sidebarPlaceholder = `
+                <div class="avatar-placeholder">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5">
+                        <circle cx="12" cy="8" r="3"></circle>
+                        <path d="M20 21a8 8 0 1 0-16 0"></path>
+                    </svg>
+                </div>
+            `;
+            document.getElementById('sidebarAvatar').innerHTML = sidebarPlaceholder;
+            document.getElementById('avatarInput').value = '';
+        }
+
+        // Character count
+        function updateCharCount(textarea, maxLength) {
+            const count = textarea.value.length;
+            const countElement = document.getElementById(textarea.id + 'Count');
+            if (countElement) {
+                countElement.textContent = count;
+                countElement.style.color = count > maxLength ? 'var(--error-red)' : 'inherit';
+            }
+        }
+
+        // Form validation
+        document.getElementById('firstName').addEventListener('input', function() {
+            const isValid = this.value.length >= 2;
+            this.classList.toggle('error', !isValid && this.value.length > 0);
+            this.nextElementSibling.style.display = !isValid && this.value.length > 0 ? 'block' : 'none';
+        });
+
+        document.getElementById('lastName').addEventListener('input', function() {
+            const isValid = this.value.length >= 2;
+            this.classList.toggle('error', !isValid && this.value.length > 0);
+            this.nextElementSibling.style.display = !isValid && this.value.length > 0 ? 'block' : 'none';
+        });
+
+        document.getElementById('phone').addEventListener('input', function() {
+            const cleaned = this.value.replace(/\s/g, '');
+            const isValid = /^0[1-9]\d{8}$/.test(cleaned) || this.value === '';
+            this.classList.toggle('error', !isValid && this.value.length > 0);
+            this.nextElementSibling.style.display = !isValid && this.value.length > 0 ? 'block' : 'none';
+        });
+
+        // Form submissions
+        document.getElementById('personalInfoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Sauvegarde...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Sauvegarder les modifications
+                `;
+                
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success';
+                alert.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                    <span>Profil mis à jour avec succès</span>
+                `;
+                e.target.parentElement.insertBefore(alert, e.target);
+                
+                setTimeout(() => alert.remove(), 5000);
+            }, 1500);
+        });
+
+        // Modal functions
+        function showModal(modalName) {
+            document.getElementById(modalName + 'Modal').classList.add('active');
+        }
+
+        function closeModal(modalName) {
+            document.getElementById(modalName + 'Modal').classList.remove('active');
+        }
+
+        function logout() {
+            window.location.href = '/login';
+        }
+
+        function logoutAll() {
+            // Simulate logout from all devices
+            alert('Vous avez été déconnecté de tous les appareils');
+            window.location.href = '/login';
+        }
+
+        function resetForm(formId) {
+            document.getElementById(formId).reset();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update initial character counts
+            const bioTextarea = document.getElementById('bio');
+            if (bioTextarea) {
+                updateCharCount(bioTextarea, 500);
+            }
+        });
+    </script>
+</body>
+</html>
