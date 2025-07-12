@@ -32,50 +32,79 @@
             min-height: 100vh;
         }
 
-        /* Header */
-        .header {
-            background-color: var(--white);
-            box-shadow: 0 2px 10px rgba(60, 69, 83, 0.05);
-            position: sticky;
+        /* Top navigation bar */
+        .top-nav {
+            position: fixed;
             top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 16px 24px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #3C4553;
+            box-shadow: 0 4px 6px -1px rgba(60, 69, 83, 0.1), 0 2px 4px -1px rgba(60, 69, 83, 0.06);
+            z-index: 2000;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
+            padding: 0 32px;
         }
 
-        .logo-container {
+        .top-nav-brand {
             display: flex;
             align-items: center;
+            gap: 16px;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 700;
         }
 
-        .user-menu {
+        .top-nav-brand svg {
+            width: 32px;
+            height: 32px;
+            fill: #FFC107;
+        }
+
+        .top-nav-right {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
         }
 
-        .notification-bell {
-            position: relative;
-            cursor: pointer;
+        .network-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 13px;
+            color: #FFFFFF;
         }
 
-        .notification-badge {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background-color: var(--error-red);
-            color: var(--white);
-            font-size: 10px;
-            padding: 2px 5px;
-            border-radius: 10px;
-        }
+        .network-icon { display: flex; align-items: center; gap: 2px; }
+        .signal-bar { width: 3px; background: rgba(255,255,255,0.3); border-radius:1px; transition: all 0.3s; }
+        .signal-bar:nth-child(1){height:6px;} .signal-bar:nth-child(2){height:10px;} .signal-bar:nth-child(3){height:14px;} .signal-bar:nth-child(4){height:18px;}
+        .signal-bar.active{background:#10B981;}
+        .connection-type{font-weight:500;}
+
+        .notification-bell { position:relative; cursor:pointer; padding:8px; border-radius:8px; transition: all 0.2s; }
+        .notification-bell:hover{ background: rgba(255,255,255,0.1); }
+        .notification-bell svg{ width:24px; height:24px; }
+        .notification-badge{ position:absolute; top:4px; right:4px; background:#EF4444; color:#FFFFFF; font-size:10px; padding:2px 5px; border-radius:10px; font-weight:600; }
+
+        .top-nav-menu{ display:flex; gap:4px; }
+        .top-nav-item{ display:flex; align-items:center; gap:8px; padding:8px 16px; color:#FFFFFF; text-decoration:none; border-radius:8px; transition: all 0.2s; font-weight:500; background:rgba(255,255,255,0.1); }
+        .top-nav-item:hover{ background: rgba(255,255,255,0.2); transform: translateY(-1px); }
+        .top-nav-item.active{ background:#FFC107; color:#3C4553; }
+
+        .power-button{ width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; cursor:pointer; transition: all 0.3s ease; position:relative; }
+        .power-button::before{ content:''; position:absolute; top:2px; right:2px; width:8px; height:8px; border-radius:50%; background:#10B981; box-shadow:0 0 6px #10B981; animation:pulse 2s infinite; }
+        .power-button:hover{ background:rgba(239,68,68,0.2); border-color:#EF4444; transform:scale(1.1); }
+        .power-button:hover::before{ background:#EF4444; box-shadow:0 0 8px #EF4444; }
+        @keyframes pulse{ 0%{opacity:1;}50%{opacity:0.6;}100%{opacity:1;} }
+        @media (max-width:768px){ .top-nav{padding:0 16px;} .top-nav-brand span{display:none;} .top-nav-item span:not(:first-child){display:none;} .network-status .connection-type{display:none;} .top-nav-right{gap:12px;} }
+
+
 
         /* Main Layout */
         .main-container {
@@ -664,31 +693,36 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo-container">
-                <svg height="40" preserveAspectRatio="xMidYMid meet" version="1.0" viewBox="0 0 296 427" width="28" xmlns="http://www.w3.org/2000/svg">
-                    <g fill="#3C4553" stroke="none" transform="translate(0.000000,427.000000) scale(0.100000,-0.100000)">
-                        <path d="M1391 3921 c-32 -20 -1064 -1059 -1079 -1086 -15 -27 -17 -93 -20 -645 -2 -431 0 -626 8 -653 7 -25 22 -45 43 -57 30 -19 53 -20 363 -20 407 0 377 -11 382 143 4 99 3 105 -21 133 l-25 29 -208 3 c-128 2 -213 7 -221 14 -10 8 -13 107 -13 461 l0 451 417 418 c230 230 425 418 433 418 8 0 203 -188 433 -418 l417 -418 0 -442 c0 -287 -4 -450 -10 -463 -10 -18 -23 -19 -225 -19 l-214 0 -20 -26 c-18 -23 -21 -41 -21 -135 0 -162 -33 -149 378 -149 319 0 339 1 370 20 18 11 37 32 42 46 7 16 10 262 10 651 -1 593 -2 627 -20 661 -10 21 -114 131 -232 247 -117 115 -357 353 -533 527 l-321 318 -49 0 c-28 0 -56 -4 -64 -9z"/>
-                        <path d="M1425 2756 c-11 -7 -80 -46 -153 -86 l-132 -72 2 -181 3 -181 110 -62 c61 -35 131 -72 156 -84 l46 -22 74 37 c41 21 109 58 152 83 l77 46 0 182 0 182 -153 86 c-85 47 -155 86 -158 85 -2 0 -13 -6 -24 -13z"/>
-                        <path d="M1364 1891 c-17 -11 -36 -34 -43 -52 -8 -23 -11 -254 -11 -796 0 -839 -2 -810 59 -846 39 -23 157 -23 189 -1 31 22 52 66 52 112 0 22 6 44 13 50 6 6 68 12 135 14 122 3 124 3 149 32 24 28 25 34 21 133 -4 135 -12 143 -133 143 -105 0 -115 8 -115 94 0 39 5 67 13 74 6 5 52 12 100 14 126 6 132 14 132 159 0 148 -1 149 -169 149 -82 0 -126 4 -134 12 -9 9 -12 95 -12 327 0 298 -1 318 -20 349 -25 40 -54 52 -133 52 -43 0 -71 -6 -93 -19z"/>
-                    </g>
-                </svg>
-                <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 24px; font-weight: 700; color: #3C4553; margin-left: 10px;">KeyMate</span>
-            </div>
-            
-            <div class="user-menu">
-                <div class="notification-bell">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <span class="notification-badge">3</span>
+     <!-- Top Navigation Bar -->
+<nav class="top-nav">
+        <a href="#" class="top-nav-brand">
+            <svg viewBox="0 0 296 427" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor" transform="translate(0,427) scale(0.1,-0.1)"><path d="M1391 3921 c-32 -20 -1064 -1059 -1079 -1086 -15 -27 -17 -93 -20 -645 -2 -431 0 -626 8 -653 7 -25 22 -45 43 -57 30 -19 53 -20 363 -20 407 0 377 -11 382 143 4 99 3 105 -21 133 l-25 29 -208 3 c-128 2 -213 7 -221 14 -10 8 -13 107 -13 461 l0 451 417 418 c230 230 425 418 433 418 8 0 203 -188 433 -418 l417 -418 0 -442 c0 -287 -4 -450 -10 -463 -10 -18 -23 -19 -225 -19 l-214 0 -20 -26 c-18 -23 -21 -41 -21 -135 0 -162 -33 -149 378 -149 319 0 339 1 370 20 18 11 37 32 42 46 7 16 10 262 10 651 -1 593 -2 627 -20 661 -10 21 -114 131 -232 247 -117 115 -357 353 -533 527 l-321 318 -49 0 c-28 0 -56 -4 -64 -9z"/></g></svg>
+            <span>KeyMate</span>
+        </a>
+        <div class="top-nav-right">
+            <div class="network-status">
+                <div class="network-icon">
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar active"></span>
+                    <span class="signal-bar"></span>
                 </div>
-                <button class="btn btn-secondary" onclick="showModal('logout')">Déconnexion</button>
+                <span class="connection-type">WiFi</span>
             </div>
+            <div class="notification-bell" onclick="showNotifications()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="top-nav-menu">
+                <a href="#" class="top-nav-item active" onclick="navigateToSection('properties')"><span>🏠</span><span>Mes Biens</span></a>
+                <a href="#" class="top-nav-item" onclick="navigateToSection('analytics')"><span>📊</span><span>Analytics</span></a>
+                <a href="#" class="top-nav-item" onclick="navigateToSection('profile')"><span>👤</span><span>Profil</span></a>
+            </div>
+            <button class="power-button" onclick="logout()" title="Se déconnecter"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg></button>
         </div>
-    </header>
+    </nav>
+
+
 
     <!-- Main Content -->
     <div class="main-container">
